@@ -6,10 +6,17 @@
 
 
 
-
+---
 
 	
 ##### Instructions:
+######Install:
+Navigate to the directory where you'd like to install the MOSDEF data viewer.
+
+Download code from git repo using the following:
+
+``` git clone https://github.com/sedonaprice/mosdef_dv.git```
+
 ######Setup:
 Include the following in your system environment variables (ie in ~/.bashrc)
 
@@ -23,6 +30,7 @@ Include the following in your system environment variables (ie in ~/.bashrc)
 ``` python data_viewer.py ```
 
 
+---
 
 ##### Dependencies:
 PyQt4
