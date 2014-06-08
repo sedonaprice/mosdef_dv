@@ -13,12 +13,11 @@
 ######Setup:
 Include the following in your system environment variables (ie in ~/.bashrc)
 
-	export MOSDEF_DV_2D=/Users/sedona/data/work/mosdef/Data/Reduced/v0.2/2D
-	export MOSDEF_DV_1D=/Users/sedona/data/work/mosdef/Data/Reduced/v0.2/1D
-	export MOSDEF_DV_MEAS=/Users/sedona/data/work/mosdef/Measurements
+	export MOSDEF_DV_2D=/Users/mosdef/Data/Reduced/v0.2/2D
+	export MOSDEF_DV_1D=/Users/mosdef/Data/Reduced/v0.2/1D
+	export MOSDEF_DV_MEAS=/Users/mosdef/Measurements
 	export MOSDEF_DV_DB=/Users/sedona/software/mosdef_dataviewer/viewer_data
-	export MOSDEF_DV_PSTAMP=/Users/sedona/data/work/mosdef/Mask_Design/postage_stamps/30_by_30
-
+	export MOSDEF_DV_PSTAMP=/Users/mosdef/Mask_Design/postage_stamps/30_by_30
 
 ######Launch program:
 ``` python data_viewer.py ```
