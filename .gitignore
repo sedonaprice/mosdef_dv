@@ -1,3 +1,4 @@
 viewer_data
 *.png
 traits_botched
+*.pyc
