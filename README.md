@@ -22,7 +22,7 @@ Download code from git repo using the following:
 ######Setup:
 Include the following in your system environment variables (ie in ~/.bashrc)
 
-	alias mosdef_dv='python /Users/sedona/software/mosdef_dataviewer/data_viewer.py'
+	alias mosdef_dv='python /path/to/MOSDEF_DV/data_viewer.py'
 
 On pepper, this should be 
 	
@@ -31,8 +31,8 @@ On pepper, this should be
 
 ######Launch program:
 Navigate to directory where you would like to create the DV dir containing the DB. 
-*You must always run MOSDEF DV from this directory to keep using the current DB and 
-previously set paths.*
+_You must always run MOSDEF DV from this directory to keep using the current DB and 
+previously set paths._
 
 Within this directory, run:
 ``` mosdef_dv ```
