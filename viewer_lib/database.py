@@ -131,7 +131,9 @@ def cat_struct():
             all_df = all_df.append(dfNew, ignore_index=True)
             
         else:
-            raise ValueError(len(splt))
+            # print splt
+            # raise ValueError(len(splt))
+            pass
 
     # DF containing unique objects:
     obj_df= all_df[['maskname','primID','aper_no']].copy()
@@ -236,44 +238,6 @@ def cat_struct():
 
 
 ############################
-
-
-    # Tags for the catalog:
-    #   'maskname', 'objID', \
-    #       'primaryID', 'aperture_no', \
-    #       'field', \
-    #       'ra', 'dec', \
-    #       'spec1d_file_k', 'spec2d_file_k', \
-    #       'spec1d_file_h', 'spec2d_file_h', \
-    #       'spec1d_file_j', 'spec2d_file_j', \
-    #       'spec1d_file_y', 'spec2d_file_y', \
-    #       'hst_file'
-
-# def read_current_version(db_dir):
-#     # Read in the file to get the current version
-#     fileout = db_dir+'/current_version.txt'
-#     exist = os.path.isfile(fileout)
-#     if exist:
-#         f = open(fileout, 'r')
-#         version = f.read()
-#         f.close()
-#     else:
-#         version = '--'
-# 
-#     return version
-# 
-# def read_current_basedir(db_dir):
-#     # Read in the file to get the current basedir
-#     fileout = db_dir+'/current_basedir.txt'
-#     exist = os.path.isfile(fileout)
-#     if exist:
-#         f = open(fileout, 'r')
-#         basedir = f.read()
-#         f.close()
-#     else:
-#         basedir = '-----'
-# 
-#     return basedir
 
 
 def write_cat_db():
