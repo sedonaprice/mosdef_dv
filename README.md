@@ -31,8 +31,8 @@ On pepper, this should be
 
 ######Launch program:
 Navigate to directory where you would like to create the DV dir containing the DB. 
-_You must always run MOSDEF DV from this directory to keep using the current DB and 
-previously set paths._
+__You must always run MOSDEF DV from this directory to keep using the current DB and 
+previously set paths.__
 
 Within this directory, run:
 ``` mosdef_dv ```
