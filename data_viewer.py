@@ -265,7 +265,7 @@ class DataViewer(QMainWindow):
         line_lbl_wid = 70
         
         leg_lbl = QLabel(self)
-        leg_lbl.setText('Line legend:')
+        leg_lbl.setText('Legend:')
         h_leg = self.make_hbox_widget([leg_lbl], stretch=1)
         
         h_red = self.make_line_leg('Hydrogen', 'red')
@@ -593,8 +593,12 @@ class DataViewer(QMainWindow):
     def make_line_leg(self, line_name, color):
         line_lbl_wid = 70
         
-        line = QLabel("---")
-        line.setStyleSheet('color: '+color+'; font-weight: bold')
+        line = QFrame()
+        line.setFrameStyle(QFrame.HLine)
+        line.setFixedWidth(30)
+        line.setLineWidth(2)
+        line.setStyleSheet('color: '+color)
+        
         lbl = QLabel(line_name)
         lbl.setFixedWidth(line_lbl_wid)
         h = self.make_hbox_widget([line, lbl], stretch=2)
