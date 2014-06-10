@@ -467,8 +467,9 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         
         # Check if we're going to mask skylines:
         if self.masksky_cb.isChecked():
-            wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)   
+            wh_plot, wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)   
         else:
+            wh_plot = None
             wh_cont = None
             wh_cont_sky = None
 
@@ -480,6 +481,7 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         
         if wh_cont is not None:
             # Masking skylines
+            ymax = 0.
             for wh in wh_cont:
                 xx = spec1d_x[wh]
                 yy_lo = spec1d_errlo[wh]
@@ -493,6 +495,10 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                     yy_hi = smooth_arr(yy_hi, npix=np.int(self.smooth_num.text()))
                     yy = smooth_arr(yy, npix=np.int(self.smooth_num.text()))
                 ############
+                
+                if (min(wh) > 20) and (max(wh) < len(spec1d_x)-20):
+                    if yy_hi.max() > ymax:
+                        ymax = yy_hi.max()
                 
                 # plot the flux errors
                 ax.fill_between(xx, yy_lo, yy_hi, \
@@ -512,6 +518,8 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                 spec1d_y = smooth_arr(spec1d_y, npix=np.int(self.smooth_num.text()))
             ############
             
+            ymax = spec1d_errhi[20:-20].max()
+            
             ax.fill_between(spec1d_x, spec1d_errlo, spec1d_errhi, \
                   color='b', \
                   facecolor='b', alpha=.25)
@@ -520,13 +528,19 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
             ax.plot(spec1d_x,spec1d_y, 'b-', lw=1)
         
         
-        
-        range_spec = spec1d_y[np.isfinite(spec1d_y)].copy()
-        range_spec.sort()
-        
-        
-        ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
-                    range_spec[.99*len(range_spec)]])
+        if self.masksky_cb.isChecked():
+            spec1d_y = spec1d_y[wh_plot]
+            range_spec = spec1d_y[np.isfinite(spec1d_y)].copy()
+            range_spec.sort()
+            ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
+                        ymax])
+        else:
+            range_spec = spec1d_y[np.isfinite(spec1d_y)].copy()
+            range_spec.sort()
+            # ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
+            #             ymax])
+            ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
+                         range_spec[.99*len(range_spec)]])
 
         ax.set_xlim(xlim)
         
@@ -568,7 +582,7 @@ def wh_skylines(err_spec, cutoff=3.):
     wh_cont = wh_continuous(wh_nosky)
     wh_cont_sky = wh_continuous(wh_sky)
     
-    return wh_cont, wh_cont_sky
+    return wh_nosky, wh_cont, wh_cont_sky
     
 def wh_continuous(wh_arr):
     wh_arrs = []

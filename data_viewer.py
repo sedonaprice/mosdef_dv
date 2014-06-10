@@ -164,7 +164,7 @@ class DataViewer(QMainWindow):
         self.match_lbl = QLabel("Objects in mask:", self)
         
         self.match_list = []#"Ubuntu", "Mandriva", "Fedora", "Red Hat", "Gentoo"]
-        self.matches = self.fillComboBox(self.match_list)
+        self.matches = self.initComboBox(self.match_list)
         
         # Previous, Next buttons
         self.prev_match_button = QPushButton("&Previous")
@@ -338,29 +338,29 @@ class DataViewer(QMainWindow):
         self.matches.clear()
         for l in self.match_list:
             self.matches.addItem(l)
-        self.matches.activated[str].connect(self.onSelectMatch)
-        
-        
-        self.fromPrimAper(str(self.matches.currentText()))
-        
-        # Redoes the drawing, etc. for the first item returned in the mask query
-        self.on_mask_prim_aper_query()
+            
+        #
+        # Draw first item:
+        #self.onSelectMatch(self.matches.currentText())
         
         
         
     def on_mask_id_button(self):
         # When the search button is pressed
         # Reset the selecter box to the top:
+        #self.matches.blockSignals(True)
         self.matches.setCurrentIndex(0)
         
-        self.maskname = str(self.maskNameBox.text())
-        try:
-            self.obj_id = np.int64(str(self.objIDBox.text()))
-        except:
-            # Non-numerical input
-            self.obj_id = str(self.objIDBox.text())
-            
-        self.on_mask_id_query()
+        # self.maskname = str(self.maskNameBox.text())
+        # try:
+        #     self.obj_id = np.int64(str(self.objIDBox.text()))
+        # except:
+        #     # Non-numerical input
+        #     self.obj_id = str(self.objIDBox.text())
+        #     
+        # self.on_mask_id_query()
+        
+        #self.combo.blockSignals(False)
         
         
     def on_mask_id_query(self):
@@ -470,11 +470,12 @@ class DataViewer(QMainWindow):
     
     ######################################
     # ComboBox setup:
-    def fillComboBox(self, list):
+    def initComboBox(self, list):
         combo = QComboBox(self)
         for l in list:
             combo.addItem(l)
-        combo.activated[str].connect(self.onSelectMatch) 
+
+        combo.currentIndexChanged['QString'].connect(self.onSelectMatch)
         return combo
         
     # Helper functions:
@@ -514,7 +515,7 @@ class DataViewer(QMainWindow):
             ind = self.matches.currentIndex()-1
             self.matches.setCurrentIndex(ind)
             # Execute on select match with the new item.
-            self.onSelectMatch(self.matches.currentText())
+            #self.onSelectMatch(self.matches.currentText())
         else:
             pass
         
@@ -523,7 +524,7 @@ class DataViewer(QMainWindow):
             ind = self.matches.currentIndex()+1
             self.matches.setCurrentIndex(ind)
             # Execute on select match with the new item.
-            self.onSelectMatch(self.matches.currentText())
+            #self.onSelectMatch(self.matches.currentText())
         else:
             pass
 
@@ -535,6 +536,7 @@ class DataViewer(QMainWindow):
         dlg = ChangeDBinfo()
         if dlg.exec_():
             dlg.writePaths()
+            print 'Writing new MOSDEF DV database'
             write_cat_db()
     
     ##########################################################################
