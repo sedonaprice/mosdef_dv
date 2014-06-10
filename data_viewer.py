@@ -60,9 +60,8 @@ class DataViewer(QMainWindow):
             mult = 1.3
             if screen_res[1]*mult < screen_res[0]:
                 screen_res[0] = screen_res[1]*mult
-
-            # elif screen_res[0]/mult > screen_res[1]:
-            #     screen_res[1] = screen_res[0]/mult
+            elif screen_res[0]/mult < screen_res[1]:
+                screen_res[1] = screen_res[0]/mult
                 
             self.setGeometry(screen_res[0], screen_res[1], 
                     screen_res[0], screen_res[1])
@@ -192,7 +191,7 @@ class DataViewer(QMainWindow):
         
         ######################################
         # Open window/dialog to select/add reduction version:
-        self.db_options_button = QPushButton("DB Options")
+        self.db_options_button = QPushButton("Set paths")
         self.connect(self.db_options_button, SIGNAL('clicked()'), self.on_db_options)
         
         
@@ -218,8 +217,69 @@ class DataViewer(QMainWindow):
                     self.redshiftBox, 
                     self.redshift_button],
                     stretch=0)
-                    
-        hbox6 = self.make_hbox_widget([self.db_options_button],
+        
+        
+        #####################################
+        
+        
+        
+        #####################################
+        # Smoothing, masking options
+        # hbox6/ vbox3
+        hline1 = self.make_hline()
+        
+        
+        self.masksky_cb = QCheckBox("&Mask skylines")
+        self.masksky_cb.setChecked(False)
+        self.connect(self.masksky_cb, SIGNAL('stateChanged(int)'), self.on_draw)
+        
+        h_masksky = self.make_hbox_widget([self.masksky_cb], stretch=1)
+        
+        self.smooth_cb = QCheckBox("&Smooth")
+        self.smooth_cb.setChecked(False)
+        self.connect(self.smooth_cb, SIGNAL('stateChanged(int)'), self.on_draw)
+        
+        self.smooth_lbl = QLabel(self)
+        self.smooth_lbl.setText("# Pixels:")
+        self.smooth_num = QLineEdit()
+        self.smooth_num.setText("3")
+        self.smooth_num.setFixedWidth(30)
+        self.connect(self.smooth_num, SIGNAL('editingFinished ()'), self.on_draw)
+        
+        h_smooth = self.make_hbox_widget([self.smooth_cb, self.smooth_lbl, 
+                        self.smooth_num], stretch=1)
+        
+        
+        vbox3 = self.make_vbox_layout([hline1, h_masksky, h_smooth])
+        
+        #####################################
+        # Legend
+        # hbox7/ vbox4
+        
+        hline2 = self.make_hline()
+        
+        
+        # spacer = QLabel(self)
+        # h_spacer = self.make_hbox_widget([spacer])
+        
+        line_lbl_wid = 70
+        
+        leg_lbl = QLabel(self)
+        leg_lbl.setText('Line legend:')
+        h_leg = self.make_hbox_widget([leg_lbl], stretch=1)
+        
+        h_red = self.make_line_leg('Hydrogen', 'red')
+        h_yel = self.make_line_leg('[OIII]', 'yellow')
+        h_ora = self.make_line_leg('[NII]', 'orange')
+        h_mag = self.make_line_leg('[SII]', 'magenta')
+        
+        vbox4 = self.make_vbox_layout([hline2, h_leg, h_red, 
+                                h_ora, h_mag, h_yel])  # , h_spacer,
+        
+        
+        ######################################      
+        hline3 = self.make_hline()
+        hbox8 = self.make_hbox_widget([self.db_options_button],
                                         stretch=0)
 
         
@@ -227,11 +287,11 @@ class DataViewer(QMainWindow):
         hbox02 = self.make_hbox_widget([self.mpl_toolbar],stretch=1)
         vbox1 = self.make_vbox_layout([hbox01, hbox02])
         
-        vbox2 = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5, hbox6],
-                                    stretch=5)
+        vbox2 = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5])
 
+        vbox_r = self.make_vbox_layout([vbox2, vbox3, vbox4, hline3, hbox8], stretch=3)
         
-        hbox = self.make_hbox_layout([vbox1, vbox2],
+        hbox = self.make_hbox_layout([vbox1, vbox_r],
                                     stretch=1)
    
         self.main_frame.setLayout(hbox)
@@ -528,6 +588,27 @@ class DataViewer(QMainWindow):
         if stretch == i+1:
             vbox0.addStretch(1)
         return vbox0
+    
+    
+    def make_line_leg(self, line_name, color):
+        line_lbl_wid = 70
+        
+        line = QLabel("---")
+        line.setStyleSheet('color: '+color+'; font-weight: bold')
+        lbl = QLabel(line_name)
+        lbl.setFixedWidth(line_lbl_wid)
+        h = self.make_hbox_widget([line, lbl], stretch=2)
+        
+        return h
+    
+    def make_hline(self):
+        line = QFrame()
+        line.setFrameStyle(QFrame.HLine | QFrame.Sunken)
+        line.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+        hline = self.make_hbox_widget([line])
+        
+        return hline
+    
     
     # def create_status_bar(self):
     #     self.status_text = QLabel("Reduction v"+self.current_db_version)

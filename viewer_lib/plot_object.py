@@ -337,7 +337,12 @@ def plotBand(self, gs_main, pos=0, band='H'):
         
         
         # Offset in slit coords
-        y0_off = spec2d_hdr['offset']/pscale_3dhst   # test: 5.
+        try:
+            y0_off = spec2d_hdr['c_offset']/pscale_3dhst
+        except:
+            # Someone doesn't have the updated header version of 2D: fall back to 
+            #   raw data offset.
+            y0_off = spec2d_hdr['offset']/pscale_3dhst
         
         y0 -= y0_off
         
@@ -458,7 +463,7 @@ def rot_corner_coords(coords, th, x0=0., y0=0.):
     
     return corners.T[0], corners.T[1]
     
-def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False):
+def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
     lines_lam0 = [6563., 4861., 6584., 4959., 5007., 3727., 6717., 6731.]
     # Ha, Hb, NII, OIII, OIII, OII, SII, SII
     cs = ['red', 'red', 'orange', 'yellow', 'yellow', 'yellow', 'magenta', 'magenta']
@@ -473,10 +478,10 @@ def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False):
         wav_t = (wav-wav0)/wav_del
         wav_x = wav_t*x_del+x0
         if flag_2d == False:
-            ax.axvline(x=wav_x, color=cs[i], ls=ls)
+            ax.axvline(x=wav_x, color=cs[i], ls=ls, lw=lw)
         else:
-            ax.axvline(x=wav_x, ymin=0, ymax=0.15, color=cs[i], ls=ls)
-            ax.axvline(x=wav_x, ymin=0.85, ymax=1., color=cs[i], ls=ls)
+            ax.axvline(x=wav_x, ymin=0, ymax=0.15, color=cs[i], ls=ls, lw=lw)
+            ax.axvline(x=wav_x, ymin=0.85, ymax=1., color=cs[i], ls=ls, lw=lw)
 
     return None
     

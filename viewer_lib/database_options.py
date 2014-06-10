@@ -8,7 +8,7 @@ from viewer_io import read_paths, write_paths
 class DB_Options_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.setWindowTitle('Database Options')
+        Dialog.setWindowTitle('Set paths')
         #Dialog.resize(508, 300)
         
         self.layout = QVBoxLayout()
