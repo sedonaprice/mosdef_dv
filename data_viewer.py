@@ -230,13 +230,13 @@ class DataViewer(QMainWindow):
         
         
         self.masksky_cb = QCheckBox("&Mask skylines")
-        self.masksky_cb.setChecked(False)
+        self.masksky_cb.setChecked(True)   # Temp; default: False
         self.connect(self.masksky_cb, SIGNAL('stateChanged(int)'), self.on_draw)
         
         h_masksky = self.make_hbox_widget([self.masksky_cb], stretch=1)
         
         self.smooth_cb = QCheckBox("&Smooth")
-        self.smooth_cb.setChecked(False)
+        self.smooth_cb.setChecked(True)  # Temp; default: False
         self.connect(self.smooth_cb, SIGNAL('stateChanged(int)'), self.on_draw)
         
         self.smooth_lbl = QLabel(self)

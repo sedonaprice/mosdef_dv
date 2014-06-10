@@ -17,6 +17,7 @@ import re
 #import pylab
 
 import numpy as np
+from scipy.stats import norm
 
 #from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 #from matplotlib.figure import Figure
@@ -58,6 +59,7 @@ def plotObject(self):
     
     # Plot bands
     bands = ['K', 'H', 'J', 'Y']
+    cutoffs = [2., 3., 3., 3.]
 
     if self.query_good == 1:
         # Initialize overall figure:
@@ -100,12 +102,12 @@ def plotObject(self):
                   # hspace=.25, 
                             
         for i,b in enumerate(has_bands):
-            plotBand(self, gs_main, pos=i, band=b)
+            plotBand(self, gs_main, pos=i, band=b, cutoff=cutoffs[i])
     
     # And draw the figure!    
     self.canvas.draw()
 
-def plotBand(self, gs_main, pos=0, band='H'):
+def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     # Intialized grids for 1 band plots
     # gs_outer = 
     
@@ -138,6 +140,11 @@ def plotBand(self, gs_main, pos=0, band='H'):
     
     # Read in data from files
     spec2d, spec2d_hdr = read_spec2d(self.query_info['spec2d_file_'+band.lower()])
+    
+    lam0 = spec2d_hdr['crval1']
+    lamdelt = spec2d_hdr['cdelt1']/spec2d_hdr['crpix1']
+    lamend = lam0+lamdelt*(np.shape(spec2d)[1]-1)
+    spec2d_x = np.linspace(lam0, lamend, num=np.shape(spec2d)[1])/1.e4   # plotting um
               
     # In the interest of plotting, trim all ranges where the columns are full 
     #   of nans, or are all zero.
@@ -170,76 +177,19 @@ def plotBand(self, gs_main, pos=0, band='H'):
             r_flag = 1
             
     spec2d = spec2d[:,left_inds[1]:right_inds[0]]
+    spec2d_x = spec2d_x[left_inds[1]:right_inds[0]]
     
     
     # &&&&&&&&&&&&&&&&&&&&
     # SPEC1D plot:
   
     # Add 1D spectrum axis:
-    ax = self.fig.add_subplot(gs[0,0])
-    ax.set_title(band+' band',fontproperties=font_header,
-                  x=0.5, y=0.96)
-    ax.set_xlabel('$\lambda$ (Obs. frame, $\mu \mathrm{m}$)',fontproperties=font_axes)
-    #ax.set_xlabel('$\lambda$ (Observed frame, $\AA$)',fontproperties=font_axes)
-    ax.set_ylabel('F$_{\lambda}$ (erg/s/cm$^2$/$\AA$)',fontproperties=font_axes)
-    for tick in ax.xaxis.get_major_ticks():
-           tick.label.set_fontsize(tick_fontsize) 
-    for tick in ax.yaxis.get_major_ticks():
-           tick.label.set_fontsize(tick_fontsize) 
-
-    ax.xaxis.labelpad = labelpad
-    ax.yaxis.labelpad = labelpad
-
-    spec1d_flux, spec1d_err, spec1d_light_profile, spec1d_hdr = read_spec1d(self.query_info['spec1d_file_'+band.lower()])
-
-    if spec1d_flux is not None:
-        # Need to construct wavelength from header information, just like in kinematics work
-
-        lam0 = spec1d_hdr['crval1']
-        lamdelt = spec1d_hdr['cdelt1']/spec1d_hdr['crpix1']
-        lamend = lam0+lamdelt*(len(spec1d_flux)-1)
-        spec1d_x = np.linspace(lam0, lamend, num=len(spec1d_flux))
-        spec1d_y = spec1d_flux
-
-        # Trim everything similar to how spec2d was trimmed:
-        spec1d_x = spec1d_x[left_inds[1]:right_inds[0]]/1.e4   # plotting um
-        spec1d_y = spec1d_y[left_inds[1]:right_inds[0]]
-        spec1d_err = spec1d_err[left_inds[1]:right_inds[0]]
-
-        spec1d_errlo = spec1d_y-spec1d_err
-        spec1d_errhi = spec1d_y+spec1d_err
-        
-        # Plot lines:
-        #plot_lines(ax,spec2d_hdr['z_grism'])
-        #if self.aper_no == 1:
-        # Should have z = z_spec, z_gris, z_phot, but also make it changeable.
-        plot_lines(ax,self.z, spec1d_x, spec1d_x, ls='-')
-
-        # plot the flux errors
-        ax.fill_between(spec1d_x, spec1d_errlo, spec1d_errhi, \
-              color='b', \
-              facecolor='b', alpha=.25)
-        
-        # plot the flux vs wave (observed)
-        ax.plot(spec1d_x,spec1d_y, 'b-', lw=1)
-        range_spec = spec1d_flux[np.isfinite(spec1d_flux)].copy()
-        range_spec.sort()
-        
-        ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
-                    range_spec[.99*len(range_spec)]])
-
-        ax.set_xlim([spec1d_x.min(), spec1d_x.max()])
-        
-
-        spec1d_y = None
-        spec1d_err = None
-        range_spec = None
-
-
-
-    # If there isn't data: Turn the frame off:
-    if spec1d_flux is None:
-          ax.set_axis_off()
+    ax, spec1d_flux, spec1d_hdr, spec1d_light_profile = plot_1d(self, gs, band, 
+                    font_header, font_axes, 
+                    labelpad, tick_fontsize,
+                    left_inds, right_inds,
+                    cutoff=cutoff)
+    
 
 
     # &&&&&&&&&&&&&&&&&&&&
@@ -255,21 +205,10 @@ def plotBand(self, gs_main, pos=0, band='H'):
       
         xlim = ax2.get_xlim()
         ylim = ax2.get_ylim()
-      
 
-        #if self.aper_no == 1:
-        try:
-            plot_lines(ax2, self.z, 
-                    np.array(range(np.shape(spec2d)[1])), spec1d_x, 
-                    ls='-', flag_2d=True)
-        except:
-            lam0 = spec2d_hdr['crval1']
-            lamdelt = spec2d_hdr['cdelt1']/spec2d_hdr['crpix1']
-            lamend = lam0+lamdelt*(np.shape(spec2d)[1]-1)
-            spec2d_x = np.linspace(lam0, lamend, num=np.shape(spec2d)[1])
-            plot_lines(ax2, self.z, 
-                    np.array(range(np.shape(spec2d)[1])), spec2d_x, 
-                    ls='-', flag_2d=True)
+        plot_lines(ax2, self.z, 
+                np.array(range(np.shape(spec2d)[1])), spec2d_x, 
+                ls='-', flag_2d=True)
 
                 
         if spec1d_hdr is not None:        
@@ -399,23 +338,17 @@ def plotBand(self, gs_main, pos=0, band='H'):
             
         rect = [ax3_pos.bounds[0], ax2_pos.bounds[1]+diff/2., 
                 ax3_pos.bounds[2], ax2_pos.bounds[3]*scale]
-                
-        # scale = ax_ratio/ax2_ratio*1.4
-        # diff = (ax2_pos.bounds[3]*(1-scale))
-        # 
-        # rect = [ax3_pos.bounds[0], ax2_pos.bounds[1]+diff/2., 
-        #         ax3_pos.bounds[2]*.9, ax2_pos.bounds[3]*scale]
+            
             
         ax4.set_position(rect)
         
-        spatial_y = np.array(range(len(spec1d_light_profile)))  # change this later?
+        spatial_y = np.array(range(len(spec1d_light_profile)))  
         profile = spec1d_light_profile.copy()
         ax4.plot(profile, spatial_y, 'b-')
         ax4.set_ylim([spatial_y.min(), spatial_y.max()])
     
         ax4.get_xaxis().set_ticks([])
         ax4.get_yaxis().set_ticks([])
-        
         
         #ax4.yaxis.set_ticks_position('right')
         
@@ -492,4 +425,182 @@ def plot_spatial_pos(ax, spec1d_hdr, ls='-'):
     ax.axhline(y=spec1d_hdr['ypos'], xmin=0.9, xmax=1., ls='-', color='white')
     
     return None
+    
+    
+def plot_1d(self, gs, band, font_header, font_axes, labelpad, 
+                tick_fontsize, left_inds, right_inds, cutoff=3.):
+    ##############################
+    ax = self.fig.add_subplot(gs[0,0])
+    
+    ax.set_title(band+' band',fontproperties=font_header,
+                  x=0.5, y=0.96)
+    ax.set_xlabel('$\lambda$ (Obs. frame, $\mu \mathrm{m}$)',fontproperties=font_axes)
+    #ax.set_xlabel('$\lambda$ (Observed frame, $\AA$)',fontproperties=font_axes)
+    ax.set_ylabel('F$_{\lambda}$ (erg/s/cm$^2$/$\AA$)',fontproperties=font_axes)
+    for tick in ax.xaxis.get_major_ticks():
+           tick.label.set_fontsize(tick_fontsize) 
+    for tick in ax.yaxis.get_major_ticks():
+           tick.label.set_fontsize(tick_fontsize) 
+
+    ax.xaxis.labelpad = labelpad
+    ax.yaxis.labelpad = labelpad
+
+    spec1d_flux, spec1d_err, spec1d_light_profile, spec1d_hdr = read_spec1d(self.query_info['spec1d_file_'+band.lower()])
+
+    if spec1d_flux is not None:     
+        # Need to construct wavelength from header information, just like in kinematics work
+
+        lam0 = spec1d_hdr['crval1']
+        lamdelt = spec1d_hdr['cdelt1']/spec1d_hdr['crpix1']
+        lamend = lam0+lamdelt*(len(spec1d_flux)-1)
+        spec1d_x = np.linspace(lam0, lamend, num=len(spec1d_flux))
+        spec1d_y = spec1d_flux
+
+
+        # Trim everything similar to how spec2d was trimmed:
+        spec1d_x = spec1d_x[left_inds[1]:right_inds[0]]/1.e4   # plotting um
+        spec1d_y = spec1d_y[left_inds[1]:right_inds[0]]
+        spec1d_err = spec1d_err[left_inds[1]:right_inds[0]]
+
+        xlim = [spec1d_x.min(), spec1d_x.max()]
+
+        
+        # Check if we're going to mask skylines:
+        if self.masksky_cb.isChecked():
+            wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)   
+        else:
+            wh_cont = None
+            wh_cont_sky = None
+
+
+        spec1d_errlo = spec1d_y-spec1d_err
+        spec1d_errhi = spec1d_y+spec1d_err
+        
+        plot_lines(ax,self.z, spec1d_x, spec1d_x, ls='-')
+        
+        if wh_cont is not None:
+            # Masking skylines
+            for wh in wh_cont:
+                xx = spec1d_x[wh]
+                yy_lo = spec1d_errlo[wh]
+                yy_hi = spec1d_errhi[wh]
+                yy = spec1d_y[wh]
+                
+                ############
+                # If you're smoothing:
+                if self.smooth_cb.isChecked():
+                    yy_lo = smooth_arr(yy_lo, npix=np.int(self.smooth_num.text()))
+                    yy_hi = smooth_arr(yy_hi, npix=np.int(self.smooth_num.text()))
+                    yy = smooth_arr(yy, npix=np.int(self.smooth_num.text()))
+                ############
+                
+                # plot the flux errors
+                ax.fill_between(xx, yy_lo, yy_hi, \
+                      color='b', \
+                      facecolor='b', alpha=.25)
+
+                # plot the flux vs wave (observed)
+                ax.plot(xx, yy, 'b-', lw=1)
+        else:
+            # Not masking skylines
+            
+            ############
+            # If you're smoothing:
+            if self.smooth_cb.isChecked():
+                spec1d_errlo = smooth_arr(spec1d_errlo, npix=np.int(self.smooth_num.text()))
+                spec1d_errhi = smooth_arr(spec1d_errhi, npix=np.int(self.smooth_num.text()))
+                spec1d_y = smooth_arr(spec1d_y, npix=np.int(self.smooth_num.text()))
+            ############
+            
+            ax.fill_between(spec1d_x, spec1d_errlo, spec1d_errhi, \
+                  color='b', \
+                  facecolor='b', alpha=.25)
+        
+            # plot the flux vs wave (observed)
+            ax.plot(spec1d_x,spec1d_y, 'b-', lw=1)
+        
+        
+        
+        range_spec = spec1d_y[np.isfinite(spec1d_y)].copy()
+        range_spec.sort()
+        
+        
+        ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
+                    range_spec[.99*len(range_spec)]])
+
+        ax.set_xlim(xlim)
+        
+            
+        if wh_cont_sky is not None:
+            # Plot grey boxes where skylines are:
+            # based on wh_cont_sky:
+            ylim = ax.get_ylim()
+            
+            for wh in wh_cont_sky:
+                ax.fill_between([spec1d_x[wh].min(), spec1d_x[wh].max()], \
+                                [ylim[0], ylim[0]], [ylim[1],ylim[1]], \
+                                color='grey', \
+                                facecolor='grey', alpha=0.25)
+                                
+                                # darkgrey
+        
+
+        spec1d_y = None
+        spec1d_err = None
+        range_spec = None
+
+
+
+    # If there isn't data: Turn the frame off:
+    if spec1d_flux is None:
+          ax.set_axis_off()
+          
+          
+    return ax, spec1d_flux, spec1d_hdr, spec1d_light_profile
+    
+    
+def wh_skylines(err_spec, cutoff=3.):
+    median = np.median(err_spec)
+    
+    wh_sky = np.where(err_spec >= cutoff*median)[0]
+    wh_nosky = np.where(err_spec < cutoff*median)[0]
+    
+    wh_cont = wh_continuous(wh_nosky)
+    wh_cont_sky = wh_continuous(wh_sky)
+    
+    return wh_cont, wh_cont_sky
+    
+def wh_continuous(wh_arr):
+    wh_arrs = []
+    arr = []
+    for i in xrange(len(wh_arr)):
+        if i < len(wh_arr)-1:
+            if wh_arr[i+1] - wh_arr[i] == 1:
+                arr.append(wh_arr[i])
+            else:
+                arr.append(wh_arr[i])
+                wh_arrs.append(arr)
+                arr = []
+        else:
+            arr.append(wh_arr[i])
+            wh_arrs.append(arr)
+    
+    return wh_arrs
+            
+    
+def smooth_arr(arr, npix=3.):
+    # Call this within a continuous check, to only smooth a little bit at a time.
+    
+    if len(arr) < 2*npix+1:
+        # If the truncated section is too short, reset the npix just for that part
+        npix = np.floor((len(arr)-1)/2.)
+    
+    xx = np.linspace(-1*npix, npix, num=2*npix+1)
+    yy = norm.pdf(xx,0,npix)
+    
+    # Do convolution:
+    yy_out = np.convolve(arr, yy, mode='same')
+    
+    return yy_out
+    
     
