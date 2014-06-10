@@ -34,7 +34,7 @@ def read_spec1d(filename, optimal=True):
     else:
         ext_start = 3
         
-    basedir = os.getenv('MOSDEF_DV_1D', '/Users/mosdef/Data/Reduced/v0.2/1D')
+    basedir = read_path('MOSDEF_DV_1D')
     # clean up any trailing slash
     if basedir[-1] == '/':
         basedir = basedir[0:-1]
@@ -72,7 +72,7 @@ def read_spec1d(filename, optimal=True):
 
 
 def read_spec2d(filename):
-    basedir = os.getenv('MOSDEF_DV_2D', '/Users/mosdef/Data/Reduced/v0.2/2D')
+    basedir = read_path('MOSDEF_DV_2D')
     # clean up any trailing slash
     if basedir[-1] == '/':
         basedir = basedir[0:-1]
@@ -94,8 +94,7 @@ def read_spec2d(filename):
 
 def read_pstamp(field, ID):
 
-    path = os.getenv('MOSDEF_DV_PSTAMP', 
-                '/Users/mosdef/Mask_Design/postage_stamps/30_by_30/')
+    path = read_path('MOSDEF_DV_PSTAMP')
     path = path+'/'+field.upper()+'/'
     
     filename = path+field.upper()+'_'+str(ID)+'.fits'
@@ -108,8 +107,7 @@ def read_pstamp(field, ID):
 
         return pstamp, hdr
     except:
-        path = os.getenv('MOSDEF_DV_PSTAMP', 
-                '/Users/mosdef/Mask_Design/postage_stamps/30_by_30/')
+        path = read_path('MOSDEF_DV_PSTAMP')
         path = path+'/'+field.upper()+'/ALL/'
 
         filename = path+field.upper()+'_'+str(ID)+'.fits'
@@ -125,15 +123,6 @@ def read_pstamp(field, ID):
             return None, None
 
 
- 
-
-# def read_thumbnail():
-#     """
-#     return a trimmed part of the detection image for plotting, with an 
-#     accompanying WCS.
-#     """
-#     
-#     return None
 
 
 def read_0d_cat(vers='2.1'):
@@ -143,7 +132,7 @@ def read_0d_cat(vers='2.1'):
 	if vers == '4.0':
 		raise Exception("MOSDEF catalogs not made with v4.0 yet!")
 
-	path = os.getenv('MOSDEF_DV_MEAS', '/Users/mosdef/Measurements')
+	path = read_path('MOSDEF_DV_MEAS')
 	filename = path+'/mosdef_0d.fits'
 	
 	hdu = fits.open(filename)
@@ -155,117 +144,56 @@ def read_0d_cat(vers='2.1'):
 
 
 
-# 
-# def read_linefits(filename, basedir):
-#     print 'still using separate program to read lines -- need to incorporate into this module!'
-#     lines = read_data.lines()
-#     
-#     return lines
 
 
-# 
-# 
-# def read_versions():
-#     db_dir = os.getenv('MOSDEF_DV_DB', '~')
-#     filename = db_dir+'/versions.txt'
-#     exist = os.path.isfile(filename)
-#     if exist:
-#         dt = 'S6'
-#         versions = np.loadtxt(filename, dtype=dt)
-#         if versions.size <= 1:
-#             versions = [str(versions)]
-#         else:
-#             versions = list(versions)
-# 
-#     else:
-#         versions = ['--------']
-# 
-# 
-#     return versions
-# 
-# def read_basedirs():
-#     """ Basedirs structure """
-#     db_dir = os.getenv('MOSDEF_DV_DB', '~')
-#     filename = db_dir+'/basedirs.txt'
-#     exist = os.path.isfile(filename)
-#     if exist:
-#         dt = {'names': ('vers', 'dir'), 
-#             'formats': ('S6', 'S40')}
-# 
-#         basedirs = np.loadtxt(filename, dtype=dt)
-#     else:
-#         basedirs = None
-# 
-#     return basedirs
-# 
-# def read_basedir(vers):
-#     db_dir = os.getenv('MOSDEF_DV_DB', '~')
-#     filename = db_dir+'/basedirs.txt'
-#     exist = os.path.isfile(filename)
-#     if exist:
-#         dt = {'names': ('vers', 'dir'), 
-#             'formats': ('S6', 'S40')}
-# 
-#         dirs = np.loadtxt(filename, dtype=dt)
-#         
-#         if len(np.shape(dirs)) >= 1:
-#             basedir = dirs['dir'][dirs['vers']==str(vers)][0]
-#         else:
-#             basedir = dirs['dir'][dirs['vers']==str(vers)]
-#     else:
-#         basedir = None
-# 
-#     return basedir
-# 
-# def write_basedir(vers):
-#     db_dir = os.getenv('MOSDEF_DV_DB', '~')
-#     filename = db_dir+'/basedirs.txt'
-#     f = open(filename, 'a')
-#     if basedir[-1] == '/':
-#         basedir = basedir[0:-1]
-#     
-#     f.write(vers+' '+basedir+'\n')
-#     f.close()
-# 
-#     return None
-# 
-# def write_version(vers, db_dir):
-#     filename = db_dir+'/versions.txt'
-#     f = open(filename, 'a')
-#     f.write(vers+'\n')
-#     f.close()
-# 
-#     return None
-# 
-# def write_current_basedir(basedir, db_dir):
-#     filename = db_dir+'/current_basedir.txt'
-#     exist = os.path.isfile(filename)
-#     if exist:
-#         sys_cmd = 'rm %s' % filename
-#         os.system(sys_cmd)
-#         
-#     if basedir[-1] == '/': 
-#         basedir = basedir[0:-1]
-#             
-#     f = open(filename, 'w')
-#     f.write(basedir)
-#     f.close()
-# 
-#     return None
-# 
-# def write_current_version(vers, db_dir):
-#     filename = db_dir+'/current_version.txt'
-#     exist = os.path.isfile(filename)
-#     if exist:
-#         sys_cmd = 'rm %s' % filename
-#         os.system(sys_cmd)
-# 
-#     f = open(filename, 'w')
-#     f.write(vers)
-#     f.close()
-# 
-#     return None
-#     
+
+def read_paths():
+    data_dir = 'mosdef_dv_data'
+            
+    filename = data_dir+'/mosdef_dv_paths.txt'
+    if os.path.exists(filename):
+ 
+        path_info = np.genfromtxt(filename, dtype=None,
+                    names=['label', 'path'])
+        
+        return pd.DataFrame(path_info)
+        
+    else:
+        return None
+
+
+def read_path(key):
+    path_info = read_paths()
+    
+    if path_info is not None:
+        return path_info['path'][path_info['label']==key].values[0]
+    else:
+        return None
+
+def write_paths(path_info):
+    data_dir = 'mosdef_dv_data'
+    if not os.path.exists(data_dir):
+        try:
+            os.makedirs(data_dir)
+        except:
+            print 'Cannot create directory '+data_dir+' under current working directory.'
+            raise
+
+    filename = data_dir+'/mosdef_dv_paths.txt'
+
+    if os.path.exists(filename):
+        sys_cmd = 'rm %s' % filename
+        os.system(sys_cmd)
+        
+    f = open(filename, 'w')
+    for i in xrange(len(path_info.index)):
+        f.write(path_info['label'][i]+' '+path_info['path'][i]+'\n')
+        
+    f.close()
+    
+    return None
+
+
 
 
 def fits_to_df(fitsrec):

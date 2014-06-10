@@ -56,10 +56,17 @@ class DataViewer(QMainWindow):
         QMainWindow.__init__(self, parent)
         
         # Set default size of the window:
-        # Full screen:
         if screen_res is not None:
+            mult = 1.3
+            if screen_res[1]*mult < screen_res[0]:
+                screen_res[0] = screen_res[1]*mult
+
+            # elif screen_res[0]/mult > screen_res[1]:
+            #     screen_res[1] = screen_res[0]/mult
+                
             self.setGeometry(screen_res[0], screen_res[1], 
                     screen_res[0], screen_res[1])
+                    
             # not full screen:
             # self.setGeometry(screen_res[0]*.025, screen_res[1]*.025, 
             #         screen_res[0]*.95, screen_res[1]*.95)
@@ -467,6 +474,7 @@ class DataViewer(QMainWindow):
     
         dlg = ChangeDBinfo()
         if dlg.exec_():
+            dlg.writePaths()
             write_cat_db()
     
     ##########################################################################

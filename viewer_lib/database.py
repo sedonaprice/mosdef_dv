@@ -13,7 +13,7 @@ from numpy import array
 import pandas as pd
 import numpy as np
 import re
-from viewer_io import read_0d_cat
+from viewer_io import read_0d_cat, read_path
 import numpy as np
 
 ############################################################
@@ -99,8 +99,8 @@ def cat_struct():
     # colors = read_colors(color_file, version,cat_name=name)
 
     # Find out what data you have: use 1D spectra directory
-    basedir_1d = os.getenv('MOSDEF_DV_1D', '/Users/mosdef/Data/Reduced/v0.2/1D')
-    basedir_2d = os.getenv('MOSDEF_DV_2D', '/Users/mosdef/Data/Reduced/v0.2/2D')
+    basedir_1d = read_path('MOSDEF_DV_1D')
+    basedir_2d = read_path('MOSDEF_DV_2D')
     files = os.listdir(basedir_1d)
     
     # Returns all files:  including aperture number, bands, masknames, etc.
@@ -278,10 +278,10 @@ def cat_struct():
 
 def write_cat_db():
         
-    db_dir = os.getenv('MOSDEF_DV_DB', '~')
+    data_dir = 'mosdef_dv_data'
 
     # See if DB exists already. If it does, delete it.
-    dbname = db_dir+'/dataviewer_catalog.db'
+    dbname = data_dir+'/dataviewer_catalog.db'
 
     # Make a dict containing all the info
     cat = cat_struct()
@@ -361,8 +361,8 @@ def connect_db(dbname):
     return connection, cursor
 
 def query_db(query_string):
-    db_dir = os.getenv('MOSDEF_DV_DB', '~')
-    dbname = db_dir+'/dataviewer_catalog.db'
+    data_dir = 'mosdef_dv_data'
+    dbname = data_dir+'/dataviewer_catalog.db'
 
     exist = db_exist(dbname)
     # If the DB file exists, do the query....

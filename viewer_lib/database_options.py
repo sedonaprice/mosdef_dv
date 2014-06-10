@@ -2,6 +2,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import sys, os
 
+import pandas as pd
+from viewer_io import read_paths, write_paths
 
 class DB_Options_Dialog(object):
     def setupUi(self, Dialog):
@@ -13,28 +15,53 @@ class DB_Options_Dialog(object):
 
         lbl_1d = QLabel(self)
         lbl_1d.setText('1D spec dir:')
-        dir_1d = QLabel(self)
-        dir_1d.setText(os.getenv('MOSDEF_DV_1D'))
-        hbox1 = self.make_hbox_widget([lbl_1d, dir_1d])
+        self.dir_1d = QLineEdit(self)  # MOSDEF_DV_1D
+        hbox1 = self.make_hbox_widget([lbl_1d, self.dir_1d])
         
         lbl_2d = QLabel(self)
         lbl_2d.setText('2D spec dir:')
-        dir_2d = QLabel(self)
-        dir_2d.setText(os.getenv('MOSDEF_DV_2D'))
-        hbox2 = self.make_hbox_widget([lbl_2d, dir_2d])
+        self.dir_2d = QLineEdit(self) # MOSDEF_DV_2D
+        hbox2 = self.make_hbox_widget([lbl_2d, self.dir_2d])
         
         lbl_meas = QLabel(self)
         lbl_meas.setText('Measurements dir:')
-        dir_meas = QLabel(self)
-        dir_meas.setText(os.getenv('MOSDEF_DV_MEAS'))
-        hbox3 = self.make_hbox_widget([lbl_meas, dir_meas])
+        self.dir_meas = QLineEdit(self) # MOSDEF_DV_MEAS
+        hbox3 = self.make_hbox_widget([lbl_meas, self.dir_meas])
         
-        lbl_db = QLabel(self)
-        lbl_db.setText('Database dir:')
-        dir_db = QLabel(self)
-        dir_db.setText(os.getenv('MOSDEF_DV_DB'))
-        hbox4 = self.make_hbox_widget([lbl_db, dir_db])
+        lbl_pstamp = QLabel(self)
+        lbl_pstamp.setText('Pstamp dir:')
+        self.dir_pstamp = QLineEdit(self) # MOSDEF_DV_PSTAMP
+        hbox4 = self.make_hbox_widget([lbl_pstamp, self.dir_pstamp])
         
+        # Set min widths:
+        lbl_wid = 120
+        lbl_1d.setMinimumWidth(lbl_wid)
+        lbl_2d.setMinimumWidth(lbl_wid)
+        lbl_meas.setMinimumWidth(lbl_wid)
+        lbl_pstamp.setMinimumWidth(lbl_wid)
+        
+        lbl_1d.setAlignment(Qt.AlignRight)
+        lbl_2d.setAlignment(Qt.AlignRight)
+        lbl_meas.setAlignment(Qt.AlignRight)
+        lbl_pstamp.setAlignment(Qt.AlignRight)
+        
+        # Set min widths:
+        min_wid = 500
+        self.dir_1d.setMinimumWidth(min_wid)
+        self.dir_2d.setMinimumWidth(min_wid)
+        self.dir_meas.setMinimumWidth(min_wid)
+        self.dir_pstamp.setMinimumWidth(min_wid)
+        
+        # Set initial text values, if there is already a paths file.
+        path_info = read_paths()
+        labels = ['MOSDEF_DV_1D', 'MOSDEF_DV_2D', 
+                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP']
+        boxes = [self.dir_1d, self.dir_2d, self.dir_meas, self.dir_pstamp]
+        if path_info is not None:
+            for i in xrange(len(labels)):
+                path = path_info['path'][path_info['label']==labels[i]].values[0]
+                boxes[i].setText(str(path))
+                
         
         self.layout.addLayout(hbox1)
         self.layout.addLayout(hbox2)
@@ -54,7 +81,7 @@ class DB_Options_Dialog(object):
         
         # Add info:
         self.write = QLabel(self)
-        self.write.setText('Write/rewrite DB?')
+        self.write.setText('Update paths, write DB')
         hbox6 = self.make_hbox_widget([self.write], stretch=0)
         self.layout.addLayout(hbox6)
         
@@ -95,12 +122,31 @@ class ChangeDBinfo(QDialog, DB_Options_Dialog):
         QDialog.__init__(self,parent)
         self.setupUi(self)
 
+    def writePaths(self):
+        # Write the paths out to the file.
+        MOSDEF_DV_1D = str(self.dir_1d.text())
+        MOSDEF_DV_2D = str(self.dir_2d.text())
+        MOSDEF_DV_MEAS = str(self.dir_meas.text())
+        MOSDEF_DV_PSTAMP = str(self.dir_pstamp.text())
+        
+        labels = ['MOSDEF_DV_1D', 'MOSDEF_DV_2D', 
+                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP']
+                
+        paths = [MOSDEF_DV_1D, MOSDEF_DV_2D, 
+                MOSDEF_DV_MEAS, MOSDEF_DV_PSTAMP]
+                
+        df = pd.DataFrame({'label': labels,
+                            'path': paths})
+                            
+        write_paths(df)
+        
+        return None
     
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-
     dlg = ChangeDBinfo()
     if dlg.exec_():
-        pass
+        dlg.writePaths()
+        #pass
