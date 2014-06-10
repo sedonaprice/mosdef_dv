@@ -35,7 +35,7 @@ __You must always run MOSDEF DV from this directory to keep using the current DB
 previously set paths.__
 
 Within this directory, run:
-``` mosdef_dv ```
+	mosdef_dv
 
 
 ---
