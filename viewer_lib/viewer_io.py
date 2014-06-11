@@ -166,7 +166,11 @@ def read_path(key):
     path_info = read_paths()
     
     if path_info is not None:
-        return path_info['path'][path_info['label']==key].values[0]
+        try:
+            path = path_info['path'][path_info['label']==key].values[0]
+        except:
+            path = None
+        return path
     else:
         return None
 

@@ -397,9 +397,14 @@ def rot_corner_coords(coords, th, x0=0., y0=0.):
     return corners.T[0], corners.T[1]
     
 def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
-    lines_lam0 = [6563., 4861., 6584., 4959., 5007., 3727., 6717., 6731.]
+    lines_lam0 = [6564.60, 4862.71, 
+                6585.27, 
+                4960.295, 5008.240, 
+                3727.10, 3729.86, 
+                6718.294, 6732.673]
     # Ha, Hb, NII, OIII, OIII, OII, SII, SII
-    cs = ['red', 'red', 'orange', 'yellow', 'yellow', 'yellow', 'magenta', 'magenta']
+    cs = ['red', 'darkturquoise', 'orange', 'yellow', 'yellow', 
+            'green', 'green', 'magenta', 'magenta']
 
     wav_del = np.average(wavearr[1:]-wavearr[:-1])
     x_del = np.average(xarr[1:]-xarr[:-1])
@@ -411,8 +416,10 @@ def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
         wav_t = (wav-wav0)/wav_del
         wav_x = wav_t*x_del+x0
         if flag_2d == False:
+            # 1D case
             ax.axvline(x=wav_x, color=cs[i], ls=ls, lw=lw)
         else:
+            # 2D case
             ax.axvline(x=wav_x, ymin=0, ymax=0.15, color=cs[i], ls=ls, lw=lw)
             ax.axvline(x=wav_x, ymin=0.85, ymax=1., color=cs[i], ls=ls, lw=lw)
 
@@ -467,9 +474,8 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         
         # Check if we're going to mask skylines:
         if self.masksky_cb.isChecked():
-            wh_plot, wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)   
+            wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)   
         else:
-            wh_plot = None
             wh_cont = None
             wh_cont_sky = None
 
@@ -482,6 +488,8 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         if wh_cont is not None:
             # Masking skylines
             ymax = 0.
+            spec1d_x_concat = np.array([])
+            spec1d_y_concat = np.array([])
             for wh in wh_cont:
                 xx = spec1d_x[wh]
                 yy_lo = spec1d_errlo[wh]
@@ -491,10 +499,19 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                 ############
                 # If you're smoothing:
                 if self.smooth_cb.isChecked():
-                    yy_lo = smooth_arr(yy_lo, npix=np.int(self.smooth_num.text()))
-                    yy_hi = smooth_arr(yy_hi, npix=np.int(self.smooth_num.text()))
-                    yy = smooth_arr(yy, npix=np.int(self.smooth_num.text()))
+                    try:
+                        if np.int(self.smooth_num.text()) > 0:
+                            yy_lo = smooth_arr(yy_lo, npix=np.int(self.smooth_num.text()))
+                            yy_hi = smooth_arr(yy_hi, npix=np.int(self.smooth_num.text()))
+                            yy = smooth_arr(yy, npix=np.int(self.smooth_num.text()))
+                    except:
+                        # Invalid smooth input: no smoothing
+                        pass
                 ############
+                
+                # Concatenate onto spec1d_y_concat:
+                spec1d_x_concat = np.append(spec1d_x_concat, xx)
+                spec1d_y_concat = np.append(spec1d_y_concat, yy)
                 
                 if (min(wh) > 20) and (max(wh) < len(spec1d_x)-20):
                     if yy_hi.max() > ymax:
@@ -513,10 +530,19 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
             ############
             # If you're smoothing:
             if self.smooth_cb.isChecked():
-                spec1d_errlo = smooth_arr(spec1d_errlo, npix=np.int(self.smooth_num.text()))
-                spec1d_errhi = smooth_arr(spec1d_errhi, npix=np.int(self.smooth_num.text()))
-                spec1d_y = smooth_arr(spec1d_y, npix=np.int(self.smooth_num.text()))
+                try:
+                    if np.int(self.smooth_num.text()) > 0:
+                        spec1d_errlo = smooth_arr(spec1d_errlo, npix=np.int(self.smooth_num.text()))
+                        spec1d_errhi = smooth_arr(spec1d_errhi, npix=np.int(self.smooth_num.text()))
+                        spec1d_y = smooth_arr(spec1d_y, npix=np.int(self.smooth_num.text()))
+                except:
+                    # Invalid smooth input: no smoothing
+                    pass
             ############
+            
+            # Concatenate for fitting array:
+            spec1d_x_concat = spec1d_x
+            spec1d_y_concat = spec1d_y
             
             ymax = spec1d_errhi[20:-20].max()
             
@@ -528,15 +554,13 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
             ax.plot(spec1d_x,spec1d_y, 'b-', lw=1)
         
         
+        range_spec = spec1d_y_concat[np.isfinite(spec1d_y_concat)].copy()
+        range_spec.sort()
+        
         if self.masksky_cb.isChecked():
-            spec1d_y = spec1d_y[wh_plot]
-            range_spec = spec1d_y[np.isfinite(spec1d_y)].copy()
-            range_spec.sort()
             ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
                         ymax])
         else:
-            range_spec = spec1d_y[np.isfinite(spec1d_y)].copy()
-            range_spec.sort()
             # ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
             #             ymax])
             ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
@@ -582,7 +606,7 @@ def wh_skylines(err_spec, cutoff=3.):
     wh_cont = wh_continuous(wh_nosky)
     wh_cont_sky = wh_continuous(wh_sky)
     
-    return wh_nosky, wh_cont, wh_cont_sky
+    return wh_cont, wh_cont_sky
     
 def wh_continuous(wh_arr):
     wh_arrs = []

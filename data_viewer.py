@@ -65,79 +65,65 @@ class DataViewer(QMainWindow):
                 
             self.setGeometry(screen_res[0], screen_res[1], 
                     screen_res[0], screen_res[1])
-                    
-            # not full screen:
-            # self.setGeometry(screen_res[0]*.025, screen_res[1]*.025, 
-            #         screen_res[0]*.95, screen_res[1]*.95)
         
         self.setWindowTitle('MOSDEF Data Viewer')
         
         # Working directory: where you are running it from
-        self.run_dir = os.getcwd()
+        #self.run_dir = os.getcwd()
 
-        
         # Initial values:
         self.maskname = '-----'
         self.obj_id = -99
         self.primID = -99
         self.aper_no = -1
-        self.z = -1.
+        self.z = -1.  # Which value should this be set as?
+        
+        
+        self.z_mosfire_1d = None
+        self.z_spec = None
+        self.z_gris = None
+        self.z_phot = None
+        self.h_mag = None
+        
+        # self.z_mosfire_1d = -42.
+        # self.z_spec = -42.
+        # self.z_gris = -42.
+        # self.z_phot = -42.
+        # self.h_mag = -28.
+        
         
         # No initial query
         self.query_good = 0
         
-        
-        # Default: assume the DB dir is below the executable dir:
-        #self.db_dir = 'viewer_data'
-        
-        # # Read in initial values
-        # self.current_db_basedir = read_current_basedir(self.db_dir)
-        # self.current_db_version = read_current_version(self.db_dir)
-        
-        
-        
-        
         # Create things:
         self.create_main_frame(screen_res=screen_res)
-        #self.create_status_bar()
-
 
         # Initialize plot
         self.on_draw()
     
-
     
     ############################################################################
     
     def create_main_frame(self, screen_res=None):
         self.main_frame = QWidget()
         
-        #if app_res is not None:
-        #    self.main_frame.setBaseSize(QSize(app_res[0], app_res[1]))
-        
         # Create the mpl Figure and FigCanvas objects. 
-        # 5x4 inches, 100 dots-per-inch
-        #
         self.dpi = 100.
-        # Actually set this in terms of the monitor geometry!!
         
-        #if app_res is not None:
-        #    print app_res[0]*.8/self.dpi,app_res[1]/self.dpi
-        #    self.fig = Figure((app_res[0]*.8/self.dpi,app_res[1]/self.dpi), dpi=self.dpi)
-        #else:
+        # Set it larger than it ever should be:
         self.fig = Figure((20.0, 20.0), dpi=self.dpi)
-        #self.fig = Figure()
         
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setParent(self.main_frame)
         
         # Create the navigation toolbar, tied to the canvas
-        #
         self.mpl_toolbar = NavigationToolbar(self.canvas, self.main_frame)
         
+        ## Add a button for line centroiding here??
         
-        # Other GUI controls
-        # 
+        ######
+        # Other GUI inputs and controls:
+        ######
         # Textboxs to get input
         self.lbl_maskNameBox = QLabel("Mask")
         self.maskNameBox = QLineEdit()
@@ -177,6 +163,8 @@ class DataViewer(QMainWindow):
         self.connect(self.next_match_button, SIGNAL('clicked()'), self.next_match)
         self.next_match_button.setShortcut(QKeySequence("Ctrl+Right"))
         
+        
+        #########################################
         # Change redshift for overplotting common lines:
         # Textbox to get input
         self.lbl_redshiftBox = QLabel("z = ")
@@ -187,17 +175,17 @@ class DataViewer(QMainWindow):
         self.redshift_button = QPushButton("&Update z")
         self.redshift_button.setFixedWidth(100) # 140
         self.connect(self.redshift_button, SIGNAL('clicked()'), self.on_z_update)
-        
+        #########################################
         
         ######################################
         # Open window/dialog to select/add reduction version:
         self.db_options_button = QPushButton("Set paths")
         self.connect(self.db_options_button, SIGNAL('clicked()'), self.on_db_options)
+        ######################################
         
-        
-        #
+        ######################################
         # Layout with box sizers
-        # 
+        ######################################
         hbox1 = self.make_hbox_widget([self.lbl_maskNameBox, 
                     self.maskNameBox, self.query_mask_button],
                     stretch=0)
@@ -220,12 +208,33 @@ class DataViewer(QMainWindow):
         
         
         #####################################
+        # redshift information
+        hline_z = self.make_hline()
         
         
+        self.lbl_z_1d, self.text_z_1d = self.make_redshift_info('1D', initval=self.z_mosfire_1d)
+        self.lbl_z_spec, self.text_z_spec = self.make_redshift_info('spec', initval=self.z_spec)
+        self.lbl_z_gris, self.text_z_gris = self.make_redshift_info('gris', initval=self.z_gris)
+        self.lbl_z_phot, self.text_z_phot = self.make_redshift_info('phot', initval=self.z_phot)
+
+        self.lbl_h, self.text_h = self.make_hmag_info(initval=self.h_mag)
+        
+        hbox_hmag = self.make_hbox_widget([self.lbl_h, self.text_h], stretch=2)
+        
+        hbox_z_1d = self.make_hbox_widget([self.lbl_z_1d, self.text_z_1d], stretch=2)
+        hbox_z_spec = self.make_hbox_widget([self.lbl_z_spec, self.text_z_spec], stretch=2)
+        hbox_z_gris = self.make_hbox_widget([self.lbl_z_gris, self.text_z_gris], stretch=2)
+        hbox_z_phot = self.make_hbox_widget([self.lbl_z_phot, self.text_z_phot], stretch=2)
+        
+        vbox_z = self.make_vbox_layout([hbox_z_1d,hbox_z_spec, hbox_z_gris, hbox_z_phot])
+        
+        vbox_hmag = self.make_vbox_layout([hbox_hmag])
+                                
+        hbox_z_h = self.make_hbox_layout([vbox_z, vbox_hmag], stretch=1)
+        vbox_z_h = self.make_vbox_layout([hline_z, hbox_z_h])
         
         #####################################
         # Smoothing, masking options
-        # hbox6/ vbox3
         hline1 = self.make_hline()
         
         
@@ -250,48 +259,50 @@ class DataViewer(QMainWindow):
                         self.smooth_num], stretch=1)
         
         
-        vbox3 = self.make_vbox_layout([hline1, h_masksky, h_smooth])
+        vbox_mask = self.make_vbox_layout([hline1, h_masksky, h_smooth])
+        
         
         #####################################
         # Legend
-        # hbox7/ vbox4
         
         hline2 = self.make_hline()
-        
-        
-        # spacer = QLabel(self)
-        # h_spacer = self.make_hbox_widget([spacer])
-        
-        line_lbl_wid = 70
-        
+    
         leg_lbl = QLabel(self)
         leg_lbl.setText('Legend:')
         h_leg = self.make_hbox_widget([leg_lbl], stretch=1)
         
-        h_red = self.make_line_leg('Hydrogen', 'red')
-        h_yel = self.make_line_leg('[OIII]', 'yellow')
+        h_red = self.make_line_leg('H&alpha;', 'red')
         h_ora = self.make_line_leg('[NII]', 'orange')
         h_mag = self.make_line_leg('[SII]', 'magenta')
         
-        vbox4 = self.make_vbox_layout([hline2, h_leg, h_red, 
-                                h_ora, h_mag, h_yel])  # , h_spacer,
+        h_tea = self.make_line_leg('H&beta;', 'darkturquoise')
+        h_yel = self.make_line_leg('[OIII]', 'yellow',line_lbl_wid = 30)
+        h_gre = self.make_line_leg('[OII]', 'green')
+        
+        vbox_ll = self.make_vbox_layout([h_red, h_ora, h_mag])
+        vbox_rl = self.make_vbox_layout([h_tea, h_yel, h_gre])
+        hbox_l = self.make_hbox_layout([vbox_ll, vbox_rl],stretch=2)
+        
+        vbox_leg = self.make_vbox_layout([hline2, h_leg, hbox_l]) 
         
         
         ######################################      
         hline3 = self.make_hline()
+        hline4 = self.make_hline()
         hbox8 = self.make_hbox_widget([self.db_options_button],
                                         stretch=0)
 
         
         hbox01 = self.make_hbox_widget([self.canvas])
         hbox02 = self.make_hbox_widget([self.mpl_toolbar],stretch=1)
-        vbox1 = self.make_vbox_layout([hbox01, hbox02])
+        vbox_canvas = self.make_vbox_layout([hbox01, hbox02])
         
-        vbox2 = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5])
+        vbox_input = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5])
 
-        vbox_r = self.make_vbox_layout([vbox2, vbox3, vbox4, hline3, hbox8], stretch=3)
+        vbox_r = self.make_vbox_layout([vbox_input, vbox_z_h, vbox_leg, 
+                                vbox_mask, hline3, hline4, hbox8], stretch=5)
         
-        hbox = self.make_hbox_layout([vbox1, vbox_r],
+        hbox = self.make_hbox_layout([vbox_canvas, vbox_r],
                                     stretch=1)
    
         self.main_frame.setLayout(hbox)
@@ -300,19 +311,21 @@ class DataViewer(QMainWindow):
     
     ############################################################################
     
-    # Define general drawing methods
-    def plotObject(self):
-        return plotObject(self)
+    # # Define general drawing methods
+    def on_draw(self):
+        """ Redraws the figure
+        """
+        plotObject(self)
+        #self.plotObject()
+        
+        
+    # def plotObject(self):
+    #     return plotObject(self)
     
     #def plotBand(self,band='H'):
     #    return plotBand(self,band=band)
     
-    def on_draw(self):
-        """ Redraws the figure
-        """
-        #print "z=", self.z
 
-        self.plotObject()
         
     
     ############################################################################
@@ -338,29 +351,21 @@ class DataViewer(QMainWindow):
         self.matches.clear()
         for l in self.match_list:
             self.matches.addItem(l)
-            
-        #
-        # Draw first item:
-        #self.onSelectMatch(self.matches.currentText())
-        
+
         
         
     def on_mask_id_button(self):
         # When the search button is pressed
-        # Reset the selecter box to the top:
-        #self.matches.blockSignals(True)
-        self.matches.setCurrentIndex(0)
         
-        # self.maskname = str(self.maskNameBox.text())
-        # try:
-        #     self.obj_id = np.int64(str(self.objIDBox.text()))
-        # except:
-        #     # Non-numerical input
-        #     self.obj_id = str(self.objIDBox.text())
-        #     
-        # self.on_mask_id_query()
-        
-        #self.combo.blockSignals(False)
+        self.maskname = str(self.maskNameBox.text())
+        try:
+             self.obj_id = np.int64(str(self.objIDBox.text()))
+        except:
+             # Non-numerical input
+             self.obj_id = str(self.objIDBox.text())
+             
+        self.on_mask_id_query()
+
         
         
     def on_mask_id_query(self):
@@ -396,15 +401,15 @@ class DataViewer(QMainWindow):
             # Get info from a 2D header:
             spec2d_hdr = self.get_any_2d_hdr()
             if spec2d_hdr is not None:
-                self.z = self.set_initial_z(spec2d_hdr)
+                self.set_z_values(spec2d_hdr, aper_no=self.aper_no)
+                
+                self.z = self.set_initial_z()
             
             spec2d_hdr = None
         
         # Redraw
         self.on_draw()
         
-        # Set initial z value: 
-        self.redshiftBox.setText(str(self.z))
     
     def on_mask_prim_aper_query(self):
         ## Actually do the query here, 
@@ -436,28 +441,24 @@ class DataViewer(QMainWindow):
             self.query_info = query[0]
             
             # Get info from a 2D header, if primary:
-            if self.aper_no == 1:
-                spec2d_hdr = self.get_any_2d_hdr()
-                if spec2d_hdr is not None:
-                    self.z = self.set_initial_z(spec2d_hdr)
-            
-                spec2d_hdr = None
-            else:
-                # Non-primary: don't have 3dhst z from header:
-                self.z = -1.
+            spec2d_hdr = self.get_any_2d_hdr()
+            if spec2d_hdr is not None:
+                self.set_z_values(spec2d_hdr, aper_no=self.aper_no)
+                
+                self.z = self.set_initial_z()
+        
+            spec2d_hdr = None
+
 
 
         # Redraw
         self.on_draw()
         
-        # Set initial z value: 
-        self.redshiftBox.setText(str(self.z))
         
         
         
     # Method for dealing with changes to redshift on plot.
     def on_z_update(self):
-        
         try:
             self.z = np.float64(str(self.redshiftBox.text()))
             # Update the drawing.
@@ -592,16 +593,16 @@ class DataViewer(QMainWindow):
         return vbox0
     
     
-    def make_line_leg(self, line_name, color):
-        line_lbl_wid = 70
-        
+    def make_line_leg(self, line_name, color, line_lbl_wid=25):
         line = QFrame()
         line.setFrameStyle(QFrame.HLine)
-        line.setFixedWidth(30)
+        line.setFixedWidth(20)
         line.setLineWidth(2)
         line.setStyleSheet('color: '+color)
         
-        lbl = QLabel(line_name)
+        lbl = QLabel()
+        lbl.setTextFormat(Qt.RichText)
+        lbl.setText(line_name)
         lbl.setFixedWidth(line_lbl_wid)
         h = self.make_hbox_widget([line, lbl], stretch=2)
         
@@ -615,6 +616,25 @@ class DataViewer(QMainWindow):
         
         return hline
     
+    def make_redshift_info(self, subscript, initval=None):   
+        lbl = QLabel("z<sub>"+subscript+"</sub> =")
+        lbl.setTextFormat(Qt.RichText)
+        
+        text = QLabel()
+        if initval is not None:
+            text.setText(str(initval))
+        
+        return lbl, text
+        
+    def make_hmag_info(self, initval=None):   
+        lbl = QLabel("H =")
+        lbl.setTextFormat(Qt.RichText)
+
+        text = QLabel()
+        if initval is not None:
+            text.setText(str(initval))
+
+        return lbl, text
     
     # def create_status_bar(self):
     #     self.status_text = QLabel("Reduction v"+self.current_db_version)
@@ -623,23 +643,62 @@ class DataViewer(QMainWindow):
     
     ##########################################################################
     # Read-in data methods:
-    
-    def set_initial_z(self, spec2d_hdr):
-        try:
-            z = spec2d_hdr['z_spec'.upper()]
-            if z < 0:
-                raise ValueError
-        except:
+    def set_z_values(self, spec2d_hdr, aper_no=1):
+        # How to set z_mosfire_1d:
+        self.z_mosfire_1d = -42.
+        
+        if aper_no == 1:
+            # Primary object
             try:
-                z = spec2d_hdr['z_grism'.upper()]
-                if z < 0:
-                    raise ValueError
+                self.z_spec = spec2d_hdr['z_spec'.upper()]
             except:
-                try:
-                    z = spec2d_hdr['z_phot'.upper()]
-                except:
-                    z = -1.
-                    
+                self.z_spec = -1.
+            
+            try:
+                self.z_gris = spec2d_hdr['z_grism'.upper()]
+            except:
+                self.z_gris = -1.
+            
+            try:
+                self.z_phot = spec2d_hdr['z_phot'.upper()]
+            except:
+                self.z_phot = -1.
+        else:
+            # Non-primary object -- no 3D-HST redshift from headers
+            self.z_spec = -1.
+            self.z_gris = -1.
+            self.z_phot = -1.
+            
+        
+        # Set z values:
+        self.text_z_1d.setText(str(self.z_mosfire_1d))
+        self.text_z_spec.setText(str(self.z_spec))
+        self.text_z_gris.setText(str(self.z_gris))
+        self.text_z_phot.setText(str(self.z_phot))
+            
+        # Set H mag value:
+        try:
+            self.h_mag = spec2d_hdr['magnitud'.upper()]
+        except:
+            self.h_mag = -1.
+            
+        self.text_h.setText(str(self.h_mag))
+            
+        return None   
+            
+    def set_initial_z(self):
+        if self.z_mosfire_1d >= 0.:
+            z = self.z_mosfire_1d
+        elif self.z_spec >= 0.:
+            z = self.z_spec
+        elif self.z_gris >= 0.:
+            z = self.z_gris
+        else:
+            z = self.z_phot
+            
+        # Set z value in textbox:
+        self.redshiftBox.setText(str(z))
+        
         return z
         
     def get_any_2d_hdr(self):

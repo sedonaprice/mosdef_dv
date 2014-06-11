@@ -33,17 +33,24 @@ class DB_Options_Dialog(object):
         self.dir_pstamp = QLineEdit(self) # MOSDEF_DV_PSTAMP
         hbox4 = self.make_hbox_widget([lbl_pstamp, self.dir_pstamp])
         
+        lbl_bmep_z = QLabel(self)
+        lbl_bmep_z.setText('BMEP redshfit dir:')
+        self.dir_bmep_z = QLineEdit(self)
+        hbox5 = self.make_hbox_widget([lbl_bmep_z, self.dir_bmep_z])
+        
         # Set min widths:
         lbl_wid = 120
         lbl_1d.setMinimumWidth(lbl_wid)
         lbl_2d.setMinimumWidth(lbl_wid)
         lbl_meas.setMinimumWidth(lbl_wid)
         lbl_pstamp.setMinimumWidth(lbl_wid)
+        lbl_bmep_z.setMinimumWidth(lbl_wid)
         
         lbl_1d.setAlignment(Qt.AlignRight)
         lbl_2d.setAlignment(Qt.AlignRight)
         lbl_meas.setAlignment(Qt.AlignRight)
         lbl_pstamp.setAlignment(Qt.AlignRight)
+        lbl_bmep_z.setAlignment(Qt.AlignRight)
         
         # Set min widths:
         min_wid = 500
@@ -51,22 +58,30 @@ class DB_Options_Dialog(object):
         self.dir_2d.setMinimumWidth(min_wid)
         self.dir_meas.setMinimumWidth(min_wid)
         self.dir_pstamp.setMinimumWidth(min_wid)
+        self.dir_bmep_z.setMinimumWidth(min_wid)
         
         # Set initial text values, if there is already a paths file.
         path_info = read_paths()
         labels = ['MOSDEF_DV_1D', 'MOSDEF_DV_2D', 
-                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP']
-        boxes = [self.dir_1d, self.dir_2d, self.dir_meas, self.dir_pstamp]
+                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP',
+                'MOSDEF_DV_BMEP_Z']
+        boxes = [self.dir_1d, self.dir_2d, 
+                self.dir_meas, self.dir_pstamp,
+                self.dir_bmep_z]
         if path_info is not None:
             for i in xrange(len(labels)):
-                path = path_info['path'][path_info['label']==labels[i]].values[0]
-                boxes[i].setText(str(path))
+                try:
+                    path = path_info['path'][path_info['label']==labels[i]].values[0]
+                    boxes[i].setText(str(path))
+                except:
+                    pass
                 
         
         self.layout.addLayout(hbox1)
         self.layout.addLayout(hbox2)
         self.layout.addLayout(hbox3)
         self.layout.addLayout(hbox4)
+        self.layout.addLayout(hbox5)
         
         
         
@@ -128,12 +143,15 @@ class ChangeDBinfo(QDialog, DB_Options_Dialog):
         MOSDEF_DV_2D = str(self.dir_2d.text())
         MOSDEF_DV_MEAS = str(self.dir_meas.text())
         MOSDEF_DV_PSTAMP = str(self.dir_pstamp.text())
+        MOSDEF_DV_BMEP_Z = str(self.dir_bmep_z.text())
         
         labels = ['MOSDEF_DV_1D', 'MOSDEF_DV_2D', 
-                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP']
+                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP',
+                'MOSDEF_DV_BMEP_Z']
                 
         paths = [MOSDEF_DV_1D, MOSDEF_DV_2D, 
-                MOSDEF_DV_MEAS, MOSDEF_DV_PSTAMP]
+                MOSDEF_DV_MEAS, MOSDEF_DV_PSTAMP,
+                MOSDEF_DV_BMEP_Z]
                 
         df = pd.DataFrame({'label': labels,
                             'path': paths})
