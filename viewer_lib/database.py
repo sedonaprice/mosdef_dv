@@ -241,8 +241,8 @@ def cat_struct():
 
 
 def write_cat_db():
-        
     data_dir = 'mosdef_dv_data'
+    ensure_dir(data_dir)
 
     # See if DB exists already. If it does, delete it.
     dbname = data_dir+'/dataviewer_catalog.db'
