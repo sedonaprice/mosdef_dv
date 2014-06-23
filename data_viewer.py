@@ -27,7 +27,7 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as Naviga
 from matplotlib.figure import Figure
 
 from viewer_lib.database import write_cat_db, query_db
-from viewer_lib.viewer_io import read_spec2d
+from viewer_lib.viewer_io import read_spec2d, read_bmep_redshift_slim
 from viewer_lib.database_options import ChangeDBinfo
 
 from viewer_lib.plot_object import *
@@ -645,7 +645,8 @@ class DataViewer(QMainWindow):
     # Read-in data methods:
     def set_z_values(self, spec2d_hdr, aper_no=1):
         # How to set z_mosfire_1d:
-        self.z_mosfire_1d = -42.
+        #self.z_mosfire_1d = -42.
+        self.z_mosfire_1d = read_bmep_redshift_slim(self.primID, self.aper_no)
         
         if aper_no == 1:
             # Primary object

@@ -126,21 +126,21 @@ def read_pstamp(field, ID):
 
 
 def read_0d_cat(vers='2.1'):
-	"""
-		Read in the MOSDEF 0d catalog (fits format)
-	"""
-	if vers == '4.0':
-		raise Exception("MOSDEF catalogs not made with v4.0 yet!")
+    """
+        Read in the MOSDEF 0d catalog (fits format)
+    """
+    if vers == '4.0':
+        raise Exception("MOSDEF catalogs not made with v4.0 yet!")
 
-	path = read_path('MOSDEF_DV_MEAS')
-	filename = path+'/mosdef_0d.fits'
-	
-	hdu = fits.open(filename)
-	data = hdu[1].data
-	data_df = fits_to_df(data)
-	hdu.close()
-	
-	return data_df
+    path = read_path('MOSDEF_DV_MEAS')
+    filename = path+'/mosdef_0d.fits'
+    
+    hdu = fits.open(filename)
+    data = hdu[1].data
+    data_df = fits_to_df(data)
+    hdu.close()
+    
+    return data_df
 
 
 
@@ -215,3 +215,30 @@ def fits_to_df(fitsrec):
             df[name] = fitsrec[name]
 
     return df
+    
+    
+def read_bmep_redshift_slim(primID, aper_no):
+    path = read_path('MOSDEF_DV_BMEP_Z')
+    filename = path+'/00_redshift_catalog_slim_bmep.txt'
+    
+    if os.path.exists(filename):
+ 
+        redshift_info_fits = np.genfromtxt(filename, dtype=None,
+                    names=['maskname', 'primID', 'aper_no', 'z1', 'n_lines1',
+                            'z2', 'n_lines2'])
+                            
+        redshift_info = pd.DataFrame(redshift_info_fits)
+        
+        try:
+        # Has a match
+            wh_prim = np.where(redshift_info['primID'] == np.int64(primID))[0]
+            wh_aper = np.where(redshift_info['aper_no'] == np.int64(aper_no))[0]
+            wh = np.intersect1d(wh_prim, wh_aper)[0]
+    
+            return redshift_info['z1'][wh]
+        except:
+            # No match in file
+            return -1.
+    else:
+        return -1.
+    

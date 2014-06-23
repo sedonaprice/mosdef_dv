@@ -34,7 +34,7 @@ class DB_Options_Dialog(object):
         hbox4 = self.make_hbox_widget([lbl_pstamp, self.dir_pstamp])
         
         lbl_bmep_z = QLabel(self)
-        lbl_bmep_z.setText('BMEP redshfit dir:')
+        lbl_bmep_z.setText('BMEP redshift dir:')
         self.dir_bmep_z = QLineEdit(self)
         hbox5 = self.make_hbox_widget([lbl_bmep_z, self.dir_bmep_z])
         
