@@ -19,25 +19,28 @@ import re
 import numpy as np
 from scipy.stats import norm
 
-#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-#from matplotlib.figure import Figure
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from matplotlib.pyplot import cm
 from matplotlib.font_manager import FontProperties
-#from matplotlib.pyplot import figure as Figure
 from matplotlib.axes import Axes
 
 import matplotlib.gridspec as gridspec
 
 from database import write_cat_db, query_db
-from viewer_io import read_spec1d, read_spec2d, read_pstamp
-#from viewer_io import read_thumbnail
+from viewer_io import read_spec1d, read_spec2d, read_pstamp, read_3dhst_cat
+from viewer_io import maskname_interp
 
 from position_angles import angle_offset
 
+from astropy.wcs import WCS
+try:
+    from shapely.geometry import Polygon, Point
+    shapely_installed = True
+except:
+    shapely_installed = False
 
 ############
 # For testing:
@@ -67,8 +70,7 @@ def plotObject(self):
         font_main_header = FontProperties()
         font_main_header.set_size(10.)
         title =  'Mask: '+self.maskname+', ID:'+str(self.obj_id)+\
-                    ", PrimID:"+str(self.primID)+", Aper:"+str(self.aper_no)#+\
-                    #", "+self.query_info['spec2d_file_h']
+                    ", PrimID:"+str(self.primID)+", Aper:"+str(self.aper_no)
                 
         self.fig.suptitle(title,fontproperties=font_main_header,
                             x=0.5, y=1.)
@@ -80,11 +82,6 @@ def plotObject(self):
             if self.query_info['spec2d_file_'+b.lower()] != '---':
                 # If it isn't the default, 'band not observed' option put in DB:
                 has_bands.append(b)
-            # else:
-            #                 # Only display the ones with an extraction?
-            #                 if self.query_info['spec1d_file_'+b.lower()] != '---':
-            #                     # If it isn't the default, 'band not observed' option put in DB:
-            #                     has_bands.append(b)
         
         #if message:        
         #    print has_bands
@@ -94,12 +91,6 @@ def plotObject(self):
                   left=0.03, right=.99,
                   top=0.96, bottom=0.0,
                   hspace=0., wspace=0.)
-        # Laptop monitor:
-        # gs_main = gridspec.GridSpec(len(has_bands),1, 
-        #         left=0.05, right=.985,
-        #         top=0.96, bottom=0.0,
-        #         hspace=0., wspace=0.)
-                  # hspace=.25, 
                             
         for i,b in enumerate(has_bands):
             plotBand(self, gs_main, pos=i, band=b, cutoff=cutoffs[i])
@@ -244,8 +235,6 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
                 vmin = range_spec[.02*len(range_spec)], \
                 vmax = range_spec[.98*len(range_spec)], \
                 interpolation='None', origin='lower')
-        
-
             
         # Angle btween 3DHST and MOSFIRE slit PA- 
         angle = angle_offset(self.maskname, self.obj_id, 
@@ -263,7 +252,6 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         sci_angle = angle -4. + 0.22   # PA for MOSFIRE science detector, not to slit.
         d2r = np.pi/180.            
         slit_len = np.shape(spec2d)[0]*spec2d_hdr['pscale']   # arcsec
-        #slit_len = 0.7     # Artificially short, for testing
         slit_wid = 0.7      # arcsec -- can you get this from the headers?
     
         pscale_3dhst = 0.06  # arcsec -- taken from Brammer+11
@@ -286,8 +274,6 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         y0 -= y0_off
         
         
-        
-        
         ##############
         # Corner coords: slit rectangle
         off_angle = 4.-0.22   # exaggerate for test. really: 4.-0.22
@@ -305,19 +291,30 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         rect_sci_x, rect_sci_y = rot_corner_coords([pos_11,pos_21,pos_22,pos_12,pos_11], 
                 slit_angle*d2r, x0=x0, y0=y0+y0_off)
                 
-        ax3.plot(rect_sci_x, rect_sci_y, lw=1, ls='-', c='cyan')        
+        ax3.plot(rect_sci_x, rect_sci_y, lw=1, ls='-', c='lime')        
         ############
                 
+        ###################################################################
+        # Overplot circles for objects within the field of view:
+        field = maskname_interp(self.maskname)[0]
+        tdhst_cat = read_3dhst_cat(field)
+        
+        # Define region with 2" padding around slit area, for plotting object IDs.
+        rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
+                slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=2, pscale_3dhst=pscale_3dhst)
+        
+        ### Test:
+        ##ax3.plot(rect_padded_x, rect_padded_y, lw=1, ls='-', c='r') 
 
-                
-        ####
+        w = WCS(pstamp_hdr)
+        plot_detections_in_stamp(ax3, tdhst_cat, w, pstamp_hdr, slit_angle,
+                    rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y)
+        ###################################################################
         
         ax3.set_xlim(xlim)
         ax3.set_ylim(ylim)
-        
- 
+        ##########
     
-
 
     # &&&&&&&&&&&&&&&&&&&&
     # Spatial profile plot:
@@ -350,14 +347,59 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         ax4.get_xaxis().set_ticks([])
         ax4.get_yaxis().set_ticks([])
         
-        #ax4.yaxis.set_ticks_position('right')
-        
-        #for tick in ax4.xaxis.get_major_ticks():
-        #     tick.label.set_fontsize(tick_fontsize) 
-        #for tick in ax4.get_yticklabels():
-        #    tick.set_fontsize(tick_fontsize)
-        
     
+    return None
+    
+def plot_detections_in_stamp(ax3, tdhst_cat, w, hdr, slit_angle, 
+            rect_pad_x=None, rect_pad_y=None):
+            
+    w_x0, w_y0 = w.wcs_pix2world(0, 0, 1)
+    # Should be square:
+    w_x1, w_y1 = w.wcs_pix2world(hdr['naxis1'], hdr['naxis2'], 1)
+    
+    w_x = np.array([min(w_x0, w_x1), max(w_x0, w_x1)])
+    w_y = np.array([min(w_y0, w_y1), max(w_y0, w_y1)])
+    
+    wh_ra_0 = np.where(tdhst_cat['ra'] >= w_x[0])[0]
+    wh_ra_1 = np.where(tdhst_cat['ra'] <= w_x[1])[0]
+    wh_ra = np.intersect1d(wh_ra_0, wh_ra_1)
+    
+    wh_dec_0 = np.where(tdhst_cat['dec'] >= w_y[0])[0]
+    wh_dec_1 = np.where(tdhst_cat['dec'] <= w_y[1])[0]
+    wh_dec = np.intersect1d(wh_dec_0, wh_dec_1)
+    
+    wh_in_stamp = np.intersect1d(wh_ra, wh_dec)
+    
+    if len(wh_in_stamp) > 0:
+        for ind in wh_in_stamp:
+            ## Check if it's within 2" of the slit, to plot txt or not
+            
+            #pos_11,pos_21,pos_22,pos_12,pos_11
+            if (rect_pad_x is not None) and (rect_pad_y is not None):
+                rect = np.array([rect_pad_x, rect_pad_y])
+                corners = rect.T
+            else:
+                corners = None
+            
+            plot_detection(ax3, tdhst_cat, w, slit_angle, ind, corners=corners)
+    
+    return None
+    
+def plot_detection(ax, tdhst_cat, w, slit_angle, ind, corners=None):
+    # For every index, plot a circle:
+    px, py = w.wcs_world2pix(tdhst_cat['ra'][ind], tdhst_cat['dec'][ind], 1)
+    circle = plt.Circle((px, py), 10, color='cyan', fill=False)
+    ax.add_artist(circle)
+    
+    if corners is not None:
+        # Check if it's in region:
+        if is_in_region(corners, px, py):
+            ang = slit_angle+90
+            if np.abs(ang) > 90:
+                ang = ang - 180.
+            ax.text(px+12, py-12, str(np.int64(tdhst_cat['id'][ind])), color='cyan', 
+                    fontsize=8., rotation=ang, clip_on=True)
+            
     return None
     
 def rot_coord_angle(arr, th, x0=0., y0=0.):
@@ -383,7 +425,6 @@ def rot_corner_coords(coords, th, x0=0., y0=0.):
     x0,y0 are center of rot.
     x1_off, y1_off are arbitrary *additative* offset to apply after transform.
     """
-    
     corners = np.array([])
     for c in coords:
         cx, cy = rot_coord_angle(c, th, x0=x0, y0=y0)
@@ -395,6 +436,51 @@ def rot_corner_coords(coords, th, x0=0., y0=0.):
     corners = np.array(corners)
     
     return corners.T[0], corners.T[1]
+    
+    
+def padded_region(pos_arr, angle_rad, x0=0., y0=0., pad=2, pscale_3dhst=0.06):
+    # Unpack values       
+    pos_11,pos_21,pos_22,pos_12,pos_11 = pos_arr
+    
+    p_pad = pad/pscale_3dhst
+    pos_11[0] -= p_pad
+    pos_11[1] -= p_pad
+    
+    pos_12[0] -= p_pad
+    pos_12[1] += p_pad
+    
+    pos_21[0] += p_pad
+    pos_21[1] -= p_pad
+    
+    pos_22[0] += p_pad
+    pos_22[1] += p_pad
+    
+    rect_padded_x, rect_padded_y = rot_corner_coords([pos_11,pos_21,pos_22,pos_12,pos_11], 
+            angle_rad, x0=x0, y0=y0)
+    
+    return  rect_padded_x, rect_padded_y
+    
+    
+def is_in_region(corners, px, py):
+    if shapely_installed:
+        poly = Polygon(corners)
+        point = Point(px, py)
+        if point.within(poly):
+            return True
+        else:
+            return False
+    else:
+        # If shapely or GEOS isn't installed, just plot the text for a crude cut:
+        # use min, max of x/y pos:
+        corn_x, corn_y = corners.T
+        if (py >= min(corn_y)) and (py <= max(corn_y)):
+            if (px >= min(corn_x)) and (px <= max(corn_x)):
+                return True
+            else:
+                return False
+        else:
+            return False
+        
     
 def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
     lines_lam0 = [6564.60, 4862.71, 

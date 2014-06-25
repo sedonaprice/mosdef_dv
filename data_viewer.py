@@ -537,8 +537,11 @@ class DataViewer(QMainWindow):
         dlg = ChangeDBinfo()
         if dlg.exec_():
             dlg.writePaths()
+            print '********************************'
             print 'Writing new MOSDEF DV database'
             write_cat_db()
+            print 'Finished writing new DV database'
+            print '********************************'
     
     ##########################################################################
     # Layout setup:

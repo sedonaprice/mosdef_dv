@@ -19,14 +19,88 @@ import re
     
 from astropy import wcs
 
-# import socket
-# hostname = socket.gethostname()
-# mbp = 'shp-mbp'
-# pepper = 'pepper.astro.berkeley.edu'
+import socket
+hostname = socket.gethostname()
+mbp = 'shp-mbp'
+pepper = 'pepper.astro.berkeley.edu'
 
-#from tdhst_io import read_data as tdhst_read_data
-# Will need to change this to work on pepper for everyone... 
-#       or bundle this in the viewer_lib...
+
+def field_short2long(field):
+    return {
+            'ae' : 'AEGIS',
+            'co' : 'COSMOS', 
+            'gn' : 'GOODS-N',
+            'gs' : 'GOODS-S',
+            'ud' : 'UDS'
+            }.get(field.lower(), 'NOT_FOUND')
+
+def maskname_interp(maskname):
+    """ Input maskname, ie 'ae2_03', which gives field (ae = AEGIS), 
+        redshift (2 = redshift 2), and mask (?) (03 = mask 3???)
+        Output: [FIELD (full name, str), Z (str), MASK (str)]
+    """
+
+    # Input string format:
+    #   FFZ_MM  : FF = field code (string), Z = redshift (int), MM = mask (??)
+
+
+    if len(maskname) != 6:
+        raise Exception("Maskname has wrong length!")
+
+    # Checked string is proper length
+    ff = maskname[0:2]
+    z = maskname[2]
+    mm = maskname[4:6]
+
+    field = field_short2long(ff)
+    redshift = z # keep as a string: for filenames  # int(z) 
+    mask_no = mm    
+
+    return [field,redshift,mask_no]
+
+def read_3dhst_cat(field, vers='2.1'):
+    """
+        Read in the 3DHST photometry catalog
+    """
+
+    path = read_path('TDHST_CAT')
+    # clean up any trailing slash
+    if path[-1] == '/':
+        path = path[0:-1]
+
+    if ((field.upper() == 'GOODS-N') and (vers == '4.0')):
+        field_name = 'GOODSN'
+    elif ((field.upper() == 'GOODS-S') and (vers == '4.0')):
+        field_name = 'GOODSS'
+    else:
+        field_name = field
+
+    filename = path+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
+
+    exist = os.path.isfile(filename)
+    if exist:
+        hdulist = fits.open(filename)
+        data = hdulist[1].data
+    
+        hdulist.close()
+
+        return data
+    else:
+        filename = path+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
+        
+        exist = os.path.isfile(filename)
+        if exist:
+            hdulist = fits.open(filename)
+            data = hdulist[1].data
+
+            hdulist.close()
+
+            return data
+        
+        else:
+            return None
+
+
 
 def read_spec1d(filename, optimal=True):
     if optimal:

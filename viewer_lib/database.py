@@ -19,9 +19,8 @@ import numpy as np
 ############################################################
 # Basic functions: check if things exist, or delete them.
 def ensure_dir(f):
-    d = os.path.dirname(f)
-    if not os.path.exists(d):
-        os.makedirs(d)
+    if not os.path.exists(f):
+        os.makedirs(f)
 
 def db_exist(dbname):
     exist = os.path.isfile(dbname)
@@ -31,39 +30,43 @@ def db_delete(dbname):
     sys_cmd = 'rm %s' % dbname
     os.system(sys_cmd)
     return None
+    
+    
+# Extra part of 1D filenames
+extra_1d = 'ell'
 ############################################################
 def field_short2long(field):
-	return {
-			'ae' : 'AEGIS',
-			'co' : 'COSMOS', 
-			'gn' : 'GOODS-N',
-			'gs' : 'GOODS-S',
-			'ud' : 'UDS'
-			}.get(field.lower(), 'NOT_FOUND')
-			
+    return {
+            'ae' : 'AEGIS',
+            'co' : 'COSMOS', 
+            'gn' : 'GOODS-N',
+            'gs' : 'GOODS-S',
+            'ud' : 'UDS'
+            }.get(field.lower(), 'NOT_FOUND')
+            
 def maskname_interp(maskname):
-	""" Input maskname, ie 'ae2_03', which gives field (ae = AEGIS), 
-		redshift (2 = redshift 2), and mask (?) (03 = mask 3???)
-	    Output: [FIELD (full name, str), Z (str), MASK (str)]
-	"""
+    """ Input maskname, ie 'ae2_03', which gives field (ae = AEGIS), 
+        redshift (2 = redshift 2), and mask (?) (03 = mask 3???)
+        Output: [FIELD (full name, str), Z (str), MASK (str)]
+    """
 
-	# Input string format:
-	#	FFZ_MM	: FF = field code (string), Z = redshift (int), MM = mask (??)
+    # Input string format:
+    #   FFZ_MM  : FF = field code (string), Z = redshift (int), MM = mask (??)
 
 
-	if len(maskname) != 6:
-		raise Exception("Maskname has wrong length!")
+    if len(maskname) != 6:
+        raise Exception("Maskname has wrong length!")
 
-	# Checked string is proper length
-	ff = maskname[0:2]
-	z = maskname[2]
-	mm = maskname[4:6]
+    # Checked string is proper length
+    ff = maskname[0:2]
+    z = maskname[2]
+    mm = maskname[4:6]
 
-	field = field_short2long(ff)
-	redshift = z # keep as a string: for filenames	# int(z) 
-	mask = mm	
+    field = field_short2long(ff)
+    redshift = z # keep as a string: for filenames  # int(z) 
+    mask = mm   
 
-	return [field,redshift,mask]
+    return [field,redshift,mask]
 
 ############################################################
 
@@ -84,7 +87,7 @@ def const_filename(filehead,mid,fileend, basedir, dim=2):
             
             exist = os.path.isfile(basedir+'/'+filename_new)
             if exist:
-    	        return filename_new
+                return filename_new
             else:
                 return '---'
         else:
@@ -108,7 +111,15 @@ def cat_struct():
     all_df = pd.DataFrame({})
     for f in files:
         splt = re.split(r'\.', f.strip())
-        if len(splt) == 5:
+        try:
+            if splt[-3] == extra_1d:
+                norm_len = 6
+            else:
+                norm_len = 5
+        except:
+            # Only happens for random files.
+            norm_len = 5
+        if len(splt) == norm_len:
             # Format: mask.band.primID.2d.fits
             mask, band, prim_id = splt[0:3]
             aper_no = 1
@@ -119,9 +130,13 @@ def cat_struct():
                                 index=[0])
             all_df = all_df.append(dfNew, ignore_index=True)
             
-        elif len(splt) == 6:
+        elif len(splt) == norm_len+1:
             # Format: mask.band.primID.aper_no.2d.fits
             mask, band, prim_id, aper_no = splt[0:4]
+            
+            # If it's a star: no serendip objects, aper_no = 1
+            if prim_id[0] == 'S':
+                aper_no = 1
             
             dfNew = pd.DataFrame({'maskname': mask, 
                                 'band': band,
@@ -182,7 +197,7 @@ def cat_struct():
         file_1d_base = obj_df.ix[i]['maskname']
         file_2d_base = obj_df.ix[i]['maskname']
         if np.int(obj_df.ix[i]['aper_no']) == 1:
-            file_1d_end = obj_df.ix[i]['primID']+'.fcscellipse.1d.fits'
+            file_1d_end = obj_df.ix[i]['primID']+'.'+extra_1d+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
             
             try:
@@ -190,7 +205,7 @@ def cat_struct():
             except:
                 objID = np.int64(obj_df.ix[i]['primID'][1:])
         else:
-            file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+'.fcscellipse.1d.fits'
+            file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+'.'+extra_1d+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
              
             #objID = -99  # Temp until we get master cat references.

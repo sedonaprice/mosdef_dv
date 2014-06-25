@@ -42,10 +42,13 @@ Within this directory, run:
 ---
 
 ##### Dependencies:
-PyQt4
+- PyQt4
+- pyregions (standalone)
+- shapely (standalone)
+- GEOS (Geometry Engine Open Source; system install: http://trac.osgeo.org/geos/)
 
 *Generally, Anaconda python (conda) or Continuum (Enthought)
-have a nice bundle of all the extra packages you need.
+have a nice bundle of most of the extra packages you need.
 There are academic licences for both of these.*
 
 
