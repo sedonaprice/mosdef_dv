@@ -30,31 +30,22 @@ from viewer_lib.database import write_cat_db, query_db
 from viewer_lib.viewer_io import read_spec2d, read_bmep_redshift_slim
 from viewer_lib.database_options import ChangeDBinfo
 
-from viewer_lib.plot_object import *
-#   Properly input all the functions when you have them written.
+from viewer_lib.plot_object import plotObject
 
-# Menubar test:
-try:
-    _encoding = QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QApplication.translate(context, text, disambig)
-
-
+from viewer_lib.menu import DV_Menu
+from viewer_lib.layout import DV_Layout
 
 class NavigationToolbar(NavigationToolbar):
-    
     # only display the buttons we need
     #spacer = NavigationToolbar.toolitems[3]
     toolitems = [t for t in NavigationToolbar.toolitems if
                  t[0] in ('Home', 'Pan', 'Zoom', 'Save')]
 
 
-class DataViewer(QMainWindow):
+class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     def __init__(self, parent=None, screen_res=None):
         QMainWindow.__init__(self, parent)
+        self.setWindowTitle('MOSDEF Data Viewer')
         
         # Set default size of the window:
         if screen_res is not None:
@@ -66,11 +57,6 @@ class DataViewer(QMainWindow):
                 
             self.setGeometry(screen_res[0], screen_res[1], 
                     screen_res[0], screen_res[1])
-        
-        self.setWindowTitle('MOSDEF Data Viewer')
-        
-        # Working directory: where you are running it from
-        #self.run_dir = os.getcwd()
 
         # Initial values:
         self.maskname = '-----'
@@ -78,158 +64,22 @@ class DataViewer(QMainWindow):
         self.primID = -99
         self.aper_no = -1
         self.z = -1.  # Which value should this be set as?
-        
-        
         self.z_mosfire_1d = None
         self.z_spec = None
         self.z_gris = None
         self.z_phot = None
         self.h_mag = None
-        
-        # No initial query
         self.query_good = 0
         
-        # Create things:
-        #self.create_menu_complicated(self)
+        ##--------------------##
+        ##   Create things:   ##
         #self.create_menu()
-        
+        #self.create_menu_complicated(self)
         self.create_main_frame(screen_res=screen_res)
 
-        
-        # def create_status_bar(self):
-        #     self.status_text = QLabel("Reduction v"+self.current_db_version)
-        #     self.statusBar().addWidget(self.status_text, 1)
-
-        # Initialize plot
+        ##--------------------##
+        ##   Initialize plot  ##
         self.on_draw()
-    
-    ############################################################################
-    
-    def create_menu(self):
-        # Create menus
-        self.menu_top = self.menuBar()
-        self.menu_top.setNativeMenuBar(False)
-        
-        self.menu = QMenu(self.menu_top)
-        self.menu.setTitle("&File")
-        
-        self.help_menu = QMenu(self.menu_top)
-        self.help_menu.setTitle("&Help")
-
-        # Menu actions
-        quit_action = self.menu_create_action("&Quit", slot=self.close,
-            shortcut="Ctrl+Q", tip="Close the application")
-
-        about_action = self.menu_create_action("&About",
-            shortcut='F1', slot=self.on_about,
-            tip='About the demo')
-            
-        about_action2 = self.menu_create_action("&About2",
-            shortcut='F2', slot=self.on_about,
-            tip='About the demo')
-        
-        # Add actions to menus
-        self.menu.addAction(quit_action)
-
-        self.help_menu.addAction(about_action)
-        self.help_menu.addSeparator()
-        self.help_menu.addAction(about_action2)
-        
-        
-        # Add menus to top menu
-        self.menu_top.addAction(self.menu.menuAction())
-        self.menu_top.addAction(self.help_menu.menuAction())
-        
-        
-    def on_about(self):
-        msg = """ A demo of using PyQt with matplotlib:
-
-         * Use the matplotlib navigation bar
-         * Add values to the text box and press Enter (or click "Draw")
-         * Show or hide the grid
-         * Drag the slider to modify the width of the bars
-         * Save the plot to a file using the File menu
-         * Click on a bar to receive an informative message
-        """
-        QMessageBox.about(self, "About the demo", msg.strip())
-        
-    def menu_add_actions(self, target, actions):
-        for action in actions:
-            if action is None:
-                target.addSeparator()
-            else:
-                target.addAction(action)
-
-    def menu_create_action(self, text, slot=None, shortcut=None,
-                        icon=None, tip=None, checkable=False,
-                        signal="triggered()"):
-        action = QAction(text, self)
-        if icon is not None:
-            action.setIcon(QIcon(":/%s.png" % icon))
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        if tip is not None:
-            action.setToolTip(tip)
-            action.setStatusTip(tip)
-        if slot is not None:
-            self.connect(action, SIGNAL(signal), slot)
-        if checkable:
-            action.setCheckable(True)
-        return action
-    
-    # def create_menu_complicated(self, MainWindow):
-    #     ### Slightly modified from code at
-    #     ###     https://github.com/pythonthusiast/CrossPlatformQt
-    #     MainWindow.setObjectName("MainWindow")
-    #     MainWindow.setUnifiedTitleAndToolBarOnMac(True)
-    #     self.centralWidget = QWidget(MainWindow)
-    #     self.centralWidget.setObjectName("centralWidget")
-    #     
-    #     MainWindow.setCentralWidget(self.centralWidget)
-    #     
-    #     self.menuBar = QMenuBar(MainWindow)
-    #     self.menuBar.setNativeMenuBar(False)
-    #     self.menuBar.setObjectName("menuBar")
-    #     
-    #     self.menu_File = QMenu(self.menuBar)
-    #     self.menu_File.setObjectName("menu_File")
-    #     
-    #     self.menu_Help = QMenu(self.menuBar)
-    #     self.menu_Help.setObjectName("menu_Help")
-    #     
-    #     MainWindow.setMenuBar(self.menuBar)
-    #     
-    #     self.actionE_xit = QAction(MainWindow)
-    #     self.actionE_xit.setMenuRole(QAction.ApplicationSpecificRole)
-    #     self.actionE_xit.setShortcut("Ctrl+Q")
-    #     self.actionE_xit.setObjectName("actionE_xit")
-    #     
-    #     self.action_About = QAction(MainWindow)
-    #     self.action_About.setMenuRole(QAction.AboutRole)
-    #     self.action_About.setShortcut("F1")
-    #     self.action_About.setObjectName("action_About")
-    #     
-    #     self.menu_File.addAction(self.actionE_xit)
-    #     self.menu_Help.addAction(self.action_About)
-    #     
-    #     self.menuBar.addAction(self.menu_File.menuAction())
-    #     self.menuBar.addAction(self.menu_Help.menuAction())
-    #     
-    #     self.retranslateUi(MainWindow)
-    #     QMetaObject.connectSlotsByName(MainWindow)
-    #     
-    #     # self.actionE_xit.triggered.connect(self.onExit)
-    #     self.action_About.triggered.connect(self.on_about)
-        
-        
-        
-    def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
-        self.menu_File.setTitle(_translate("MainWindow", "&File", None))
-        self.menu_Help.setTitle(_translate("MainWindow", "&Help", None))
-        self.actionE_xit.setText(_translate("MainWindow", "E&xit", None))
-        self.action_About.setText(_translate("MainWindow", "&About", None))
-    
     
     ############################################################################
     
@@ -238,17 +88,13 @@ class DataViewer(QMainWindow):
         
         # Create the mpl Figure and FigCanvas objects. 
         self.dpi = 100.
-        
         # Set it larger than it ever should be:
         self.fig = Figure((20.0, 20.0), dpi=self.dpi)
-        
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setParent(self.main_frame)
         
         # Create the navigation toolbar, tied to the canvas
         self.mpl_toolbar = NavigationToolbar(self.canvas, self.main_frame)
-        
-        ## Add a button for line centroiding here??
         
         ######
         # Other GUI inputs and controls:
@@ -398,6 +244,7 @@ class DataViewer(QMainWindow):
     
         leg_lbl = QLabel(self)
         leg_lbl.setText('Legend:')
+        #leg_lbl.setMargin(0)
         h_leg = self.make_hbox_widget([leg_lbl], stretch=1)
         
         h_red = self.make_line_leg('H&alpha;', 'red')
@@ -445,18 +292,8 @@ class DataViewer(QMainWindow):
         """ Redraws the figure
         """
         plotObject(self)
-        #self.plotObject()
-        
-        
-    # def plotObject(self):
-    #     return plotObject(self)
-    
-    #def plotBand(self,band='H'):
-    #    return plotBand(self,band=band)
     
 
-        
-    
     ############################################################################
     # Query actions:
     
@@ -480,8 +317,7 @@ class DataViewer(QMainWindow):
         self.matches.clear()
         for l in self.match_list:
             self.matches.addItem(l)
-
-        
+               
         
     def on_mask_id_button(self):
         # When the search button is pressed
@@ -494,8 +330,7 @@ class DataViewer(QMainWindow):
              self.obj_id = str(self.objIDBox.text())
              
         self.on_mask_id_query()
-
-        
+           
         
     def on_mask_id_query(self):
         ## Actually do the query here, 
@@ -524,14 +359,12 @@ class DataViewer(QMainWindow):
             # Update values
             self.primID = query[0]['primaryID']
             self.aper_no = query[0]['aperture_no']
-            
             self.query_info = query[0]
                 
             # Get info from a 2D header:
             spec2d_hdr = self.get_any_2d_hdr()
             if spec2d_hdr is not None:
                 self.set_z_values(spec2d_hdr, aper_no=self.aper_no)
-                
                 self.z = self.set_initial_z()
             
             spec2d_hdr = None
@@ -566,24 +399,18 @@ class DataViewer(QMainWindow):
             # %%%%%%%%%%%%%%%%%%%%%%%
             # Update values
             self.obj_id = query[0]['objID']
-
             self.query_info = query[0]
             
             # Get info from a 2D header, if primary:
             spec2d_hdr = self.get_any_2d_hdr()
             if spec2d_hdr is not None:
                 self.set_z_values(spec2d_hdr, aper_no=self.aper_no)
-                
                 self.z = self.set_initial_z()
         
             spec2d_hdr = None
-
-
-
+            
         # Redraw
         self.on_draw()
-        
-        
         
         
     # Method for dealing with changes to redshift on plot.
@@ -595,8 +422,7 @@ class DataViewer(QMainWindow):
         except:
             # Non-numerical input
             self.z = -1.
-            
-            
+                   
     
     ######################################
     # ComboBox setup:
@@ -673,100 +499,7 @@ class DataViewer(QMainWindow):
             print '********************************'
     
     ##########################################################################
-    # Layout setup:
-    def make_hbox_widget(self, items, stretch=-1):
-        hbox0 = QHBoxLayout()
-        for i,w in enumerate(items):
-            if stretch == i:
-                hbox0.addStretch(1)
-            hbox0.addWidget(w)
-            hbox0.setAlignment(w, Qt.AlignVCenter)
-        # Stretch at end?
-        if stretch == i+1:
-            hbox0.addStretch(1)
-        return hbox0
-    
-    def make_hbox_layout(self, layouts, stretch=-1):
-        hbox0 = QHBoxLayout()
-        if stretch == 0:
-            hbox0.addStretch(1)
-        for i,l in enumerate(layouts):
-            if i == stretch:
-                hbox0.addStretch(1)
-            hbox0.addLayout(l)
-        # Stretch at end?
-        if stretch == i+1:
-            hbox0.addStretch(1)
-        return hbox0
-        
-    def make_vbox_widget(self, items, stretch=-1):
-         vbox0 = QVBoxLayout()
-         for i, w in enumerate(items):
-             if stretch == i:
-                 vbox0.addStretch(1)
-             vbox0.addWidget(w)
-             vbox0.setAlignment(w, Qt.AlignHCenter)
-         # Stretch at end?
-         if stretch == i+1:
-             vbox0.addStretch(1)
-         return vbox0
 
-    def make_vbox_layout(self, layouts, stretch=-1):
-        vbox0 = QVBoxLayout()
-        if stretch == 0:
-            vbox0.addStretch(1)
-        for i,l in enumerate(layouts):
-            if i == stretch:
-                    vbox0.addStretch(1)
-            vbox0.addLayout(l)
-        # Stretch at end?
-        if stretch == i+1:
-            vbox0.addStretch(1)
-        return vbox0
-    
-    
-    def make_line_leg(self, line_name, color, line_lbl_wid=25):
-        line = QFrame()
-        line.setFrameStyle(QFrame.HLine)
-        line.setFixedWidth(20)
-        line.setLineWidth(2)
-        line.setStyleSheet('color: '+color)
-        
-        lbl = QLabel()
-        lbl.setTextFormat(Qt.RichText)
-        lbl.setText(line_name)
-        lbl.setFixedWidth(line_lbl_wid)
-        h = self.make_hbox_widget([line, lbl], stretch=2)
-        
-        return h
-    
-    def make_hline(self):
-        line = QFrame()
-        line.setFrameStyle(QFrame.HLine | QFrame.Sunken)
-        line.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        hline = self.make_hbox_widget([line])
-        
-        return hline
-    
-    def make_redshift_info(self, subscript, initval=None):   
-        lbl = QLabel("z<sub>"+subscript+"</sub> =")
-        lbl.setTextFormat(Qt.RichText)
-        
-        text = QLabel()
-        if initval is not None:
-            text.setText(str(initval))
-        
-        return lbl, text
-        
-    def make_hmag_info(self, initval=None):   
-        lbl = QLabel("H =")
-        lbl.setTextFormat(Qt.RichText)
-
-        text = QLabel()
-        if initval is not None:
-            text.setText(str(initval))
-
-        return lbl, text
     
     # def create_status_bar(self):
     #     self.status_text = QLabel("Reduction v"+self.current_db_version)
@@ -776,8 +509,6 @@ class DataViewer(QMainWindow):
     ##########################################################################
     # Read-in data methods:
     def set_z_values(self, spec2d_hdr, aper_no=1):
-        # How to set z_mosfire_1d:
-        #self.z_mosfire_1d = -42.
         self.z_mosfire_1d = read_bmep_redshift_slim(self.primID, self.aper_no)
         
         if aper_no == 1:
