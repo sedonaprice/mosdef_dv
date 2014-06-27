@@ -48,16 +48,9 @@ class DV_Menu(object):
 
 
     def on_about(self):
-        msg = """ A demo of using PyQt with matplotlib:
-
-         * Use the matplotlib navigation bar
-         * Add values to the text box and press Enter (or click "Draw")
-         * Show or hide the grid
-         * Drag the slider to modify the width of the bars
-         * Save the plot to a file using the File menu
-         * Click on a bar to receive an informative message
+        msg = """ PyQt4 GUI data-viewer for internal MOSDEF data products
         """
-        QMessageBox.about(self, "About the demo", msg.strip())
+        QMessageBox.about(self, "About the MOSDEF DV", msg.strip())
 
     def menu_add_actions(self, target, actions):
         for action in actions:

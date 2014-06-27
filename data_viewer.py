@@ -21,13 +21,12 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import numpy as np
 
-import matplotlib
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from matplotlib.figure import Figure
 
 from viewer_lib.database import write_cat_db, query_db
-from viewer_lib.viewer_io import read_spec2d, read_bmep_redshift_slim
+from viewer_lib.viewer_io import read_spec1d_comments, read_spec2d, read_bmep_redshift_slim
 from viewer_lib.database_options import ChangeDBinfo
 
 from viewer_lib.plot_object import plotObject
@@ -35,27 +34,30 @@ from viewer_lib.plot_object import plotObject
 from viewer_lib.menu import DV_Menu
 from viewer_lib.layout import DV_Layout
 
+
 class NavigationToolbar(NavigationToolbar):
     # only display the buttons we need
-    #spacer = NavigationToolbar.toolitems[3]
     toolitems = [t for t in NavigationToolbar.toolitems if
-                 t[0] in ('Home', 'Pan', 'Zoom', 'Save')]
+                 t[0] in ('Home', 'Pan', 'Zoom')]
 
 
 class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     def __init__(self, parent=None, screen_res=None):
         QMainWindow.__init__(self, parent)
+        
         self.setWindowTitle('MOSDEF Data Viewer')
         
         # Set default size of the window:
         if screen_res is not None:
-            mult = 1.3
+            screen_res_native = screen_res
+            print screen_res_native
+            mult = 1.55 #1.3
             if screen_res[1]*mult < screen_res[0]:
                 screen_res[0] = screen_res[1]*mult
             elif screen_res[0]/mult < screen_res[1]:
                 screen_res[1] = screen_res[0]/mult
                 
-            self.setGeometry(screen_res[0], screen_res[1], 
+            self.setGeometry(screen_res_native[0], screen_res_native[1], 
                     screen_res[0], screen_res[1])
 
         # Initial values:
@@ -83,18 +85,48 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     
     ############################################################################
     
+    ####
+    ## Methods to call mpl_toolbar item functions:
+    def toolbar_zoom(self):
+        self.mpl_toolbar.zoom() 
+        
+    def toolbar_pan(self):
+        self.mpl_toolbar.pan() 
+    
+    def toolbar_home(self):
+        self.mpl_toolbar.home() 
+    ####
+
+    def make_toolbar_shortcut(self, name, shortcut, slot, signal="triggered()"):
+        # Make shortcuts to go with the MPL toolbar items
+        action = QAction(name, self)
+        action.setShortcut(shortcut)
+        self.connect(action, SIGNAL(signal), slot)
+        button = QWidget()
+        button.addAction(action)
+        button.setGeometry(0,0,0,0)
+        self.mpl_toolbar.addWidget(button)
+        return button
+
+    
     def create_main_frame(self, screen_res=None):
         self.main_frame = QWidget()
+        #self.main_frame.setFocusPolicy(Qt.StrongFocus)
         
         # Create the mpl Figure and FigCanvas objects. 
         self.dpi = 100.
-        # Set it larger than it ever should be:
+        # Set it larger than it ever should be, to take up all the space it can
         self.fig = Figure((20.0, 20.0), dpi=self.dpi)
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setParent(self.main_frame)
         
         # Create the navigation toolbar, tied to the canvas
         self.mpl_toolbar = NavigationToolbar(self.canvas, self.main_frame)
+        # Create shortcuts:
+        self.zoom = self.make_toolbar_shortcut('&Zoom', "Ctrl+O", self.toolbar_zoom)
+        self.pan = self.make_toolbar_shortcut('&Pan', "Ctrl+P", self.toolbar_pan)
+        self.home = self.make_toolbar_shortcut('&Home', "Esc", self.toolbar_home)
+        
         
         ######
         # Other GUI inputs and controls:
@@ -234,7 +266,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
                         self.smooth_num], stretch=1)
         
         
-        vbox_mask = self.make_vbox_layout([hline1, h_masksky, h_smooth])
+        vbox_mask = self.make_vbox_layout([hline1, h_masksky, h_smooth], spacing=5)
         
         
         #####################################
@@ -261,10 +293,13 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
         vbox_leg = self.make_vbox_layout([hline2, h_leg, hbox_l]) 
         
+        #####################################
+        # Extraction comments
+        self.vbox_com, self.comment_info = self.make_comments_list()
+        
         
         ######################################      
         hline3 = self.make_hline()
-        hline4 = self.make_hline()
         hbox8 = self.make_hbox_widget([self.db_options_button],
                                         stretch=0)
 
@@ -273,16 +308,45 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         hbox02 = self.make_hbox_widget([self.mpl_toolbar],stretch=1)
         vbox_canvas = self.make_vbox_layout([hbox01, hbox02])
         
-        vbox_input = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5])
+        vbox_input1 = self.make_vbox_layout([hbox1, hbox2], spacing=0)
+        vbox_input2 = self.make_vbox_layout([hbox3, hbox4])#, hbox5])
+        vbox_input = self.make_vbox_layout([vbox_input1, vbox_input2])
+        #vbox_input = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5])
 
-        vbox_r = self.make_vbox_layout([vbox_input, vbox_z_h, vbox_leg, 
-                                vbox_mask, hline3, hline4, hbox8], stretch=5)
+
+        hline_z_input = self.make_hline()
+        
+        vbox_r_layout = self.make_vbox_layout([vbox_input, hline_z_input, hbox5, 
+                                vbox_z_h, vbox_leg, 
+                                vbox_mask, self.vbox_com, 
+                                hline3, hbox8], stretch=7)
+                                
+        # Scrollable?
+        self.scrollArea = QScrollArea(self)
+        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scrollArea.setWidgetResizable(True)
+        vbox_r_widget = QWidget()
+        vbox_r_widget.setLayout(vbox_r_layout)
+
+        right_width = 260
+        vbox_r_widget.setMinimumWidth(right_width)
+        self.scrollArea.setMinimumWidth(right_width+18)
+        
+        self.scrollArea.setWidget(vbox_r_widget)
+        vbox_r = QVBoxLayout()
+        vbox_r.addWidget(self.scrollArea)
+        
+        
         
         hbox = self.make_hbox_layout([vbox_canvas, vbox_r],
                                     stretch=1)
    
         self.main_frame.setLayout(hbox)
         self.setCentralWidget(self.main_frame)
+        
+        # Initialize focus to the Mask entry:
+        self.maskNameBox.setFocus()
     
     
     ############################################################################
@@ -368,6 +432,9 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
                 self.z = self.set_initial_z()
             
             spec2d_hdr = None
+            
+            # Update comments:
+            self.comment_info.setText(self.update_comments_list())
         
         # Redraw
         self.on_draw()
@@ -409,6 +476,9 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
             spec2d_hdr = None
             
+            # Update comments:
+            self.comment_info.setText(self.update_comments_list())
+
         # Redraw
         self.on_draw()
         

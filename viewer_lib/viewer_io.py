@@ -75,7 +75,7 @@ def read_3dhst_cat(field, vers='2.1'):
     else:
         field_name = field
 
-    filename = path+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
+    filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
 
     exist = os.path.isfile(filename)
     if exist:
@@ -86,7 +86,7 @@ def read_3dhst_cat(field, vers='2.1'):
 
         return data
     else:
-        filename = path+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
+        filename = path+'/v'+vers+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
         
         exist = os.path.isfile(filename)
         if exist:
@@ -100,7 +100,28 @@ def read_3dhst_cat(field, vers='2.1'):
         else:
             return None
 
-
+def read_spec1d_comments(filename, band, optimal=True):
+    data, data_err, light_profile, hdr = read_spec1d(filename, optimal=optimal)
+    
+    # UCOMMENT
+    # UCMEAN
+    comments = []
+    try:
+        str_ucomment = 'Comment: '+hdr['UCOMMENT']
+        ## Testing:
+        #str_ucomment = band+' band comment: '+hdr['FIELD']
+        comments.append(str_ucomment)
+    except:
+        pass
+    try:
+        str_ucmean = 'User code: '+hdr['UCMEAN']\
+        ## Testing:
+        #str_ucmean = band+' band user code: '+hdr['VERSION']+' and more text, wheeee'
+        comments.append(str_ucmean)
+    except:
+        pass
+        
+    return comments
 
 def read_spec1d(filename, optimal=True):
     if optimal:

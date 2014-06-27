@@ -9,19 +9,11 @@ Written:
 
 """
 
-import sys
-import matplotlib
 import matplotlib.pyplot as plt
 import re
-#matplotlib.use('Qt4Agg')
-#import pylab
 
 import numpy as np
 from scipy.stats import norm
-
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
 from matplotlib.pyplot import cm
 from matplotlib.font_manager import FontProperties
@@ -29,7 +21,7 @@ from matplotlib.axes import Axes
 
 import matplotlib.gridspec as gridspec
 
-from database import write_cat_db, query_db
+from database import query_db
 from viewer_io import read_spec1d, read_spec2d, read_pstamp, read_3dhst_cat
 from viewer_io import maskname_interp
 
@@ -90,7 +82,8 @@ def plotObject(self):
         gs_main = gridspec.GridSpec(len(has_bands),1, 
                   left=0.03, right=.99,
                   top=0.96, bottom=0.0,
-                  hspace=0., wspace=0.)
+                  hspace=0.05,
+                  wspace=0.)
                             
         for i,b in enumerate(has_bands):
             plotBand(self, gs_main, pos=i, band=b, cutoff=cutoffs[i])
@@ -99,15 +92,12 @@ def plotObject(self):
     self.canvas.draw()
 
 def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
-    # Intialized grids for 1 band plots
-    # gs_outer = 
-    
     gs = gridspec.GridSpecFromSubplotSpec(2,2, 
               subplot_spec = gs_main[pos],
               width_ratios = [7,1], 
-              height_ratios = [0.6,1], 
-              wspace=0.01,
-              hspace=0.01)
+              height_ratios = [1,1],
+              hspace=0.2,
+              wspace=0.01)
     
 
     # Set Default Font properties
@@ -124,10 +114,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
             
     # Add 2D spectrum axis:
     ax2 = self.fig.add_subplot(gs[1,0]) # Not the leftmost
-    #ax2.set_title('2d spectrum',fontproperties=font_header)
     ax2.set_axis_off()
-    
-    #print self.query_info['spec2d_file_h'], self.current_db_basedir
     
     # Read in data from files
     spec2d, spec2d_hdr = read_spec2d(self.query_info['spec2d_file_'+band.lower()])
@@ -203,7 +190,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
 
                 
         if spec1d_hdr is not None:        
-            plot_spatial_pos(ax2, spec1d_hdr, ls='-')
+            plot_spatial_pos(ax2, spec1d_hdr['ypos'], ls='-', length=0.08)
 
         ax2.set_xlim(xlim)
         ax2.set_ylim(ylim)
@@ -221,9 +208,6 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     splt = re.split('v', spec2d_hdr['version'])
     tdhst_vers = splt[-1]
     
-
-    ## This is waaaaay too small. Will have to read in the full image.... boo.
-    ## Use the pstamp of the primary if it's pepper:
     pstamp, pstamp_hdr = read_pstamp(spec2d_hdr['field'], self.primID)
 
     # WFC3 pixel scale is ~0.06"/pix
@@ -255,7 +239,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         slit_wid = 0.7      # arcsec -- can you get this from the headers?
     
         pscale_3dhst = 0.06  # arcsec -- taken from Brammer+11
-        
+        pscale_mosfire = spec2d_hdr['pscale']
         
         xlim = ax3.get_xlim()
         ylim = ax3.get_ylim()
@@ -296,18 +280,28 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
                 
         ###################################################################
         # Overplot circles for objects within the field of view:
+        splt = re.split('v', spec2d_hdr['version'])
+        tdhst_vers = splt[-1]
         field = maskname_interp(self.maskname)[0]
-        tdhst_cat = read_3dhst_cat(field)
+        tdhst_cat = read_3dhst_cat(field, vers=tdhst_vers)
         
-        # Define region with 2" padding around slit area, for plotting object IDs.
+        # Define region with 1" padding around slit area, for plotting object IDs.
         rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
-                slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=2, pscale_3dhst=pscale_3dhst)
+                slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=1., pscale_3dhst=pscale_3dhst)
         
         ### Test:
         ##ax3.plot(rect_padded_x, rect_padded_y, lw=1, ls='-', c='r') 
-
+        
+        # Get info for primary object:
+        prim_y_pos = get_primary_y_pos(self, band)
+        main_y_pos = spec1d_hdr['ypos']
+        
         w = WCS(pstamp_hdr)
-        plot_detections_in_stamp(ax3, tdhst_cat, w, pstamp_hdr, slit_angle,
+        
+        plot_detections_in_stamp(self, ax3, ax2, tdhst_cat, w, 
+                    main_y_pos, prim_y_pos, slit_angle, 
+                    pscale_ratio=pscale_mosfire/pscale_3dhst, 
+                    x0=x0, y0=y0+y0_off, 
                     rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y)
         ###################################################################
         
@@ -330,7 +324,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         ax3_pos = ax3.get_position()
         ax2_ratio = np.float(ax2_pos.bounds[3])/np.float(ax2_pos.bounds[2])
             
-        scale = ax_ratio/ax2_ratio*1.15  #*1.65
+        scale = ax_ratio/ax2_ratio*1.35 #*1.15  #*1.65
         diff = (ax2_pos.bounds[3]*(1-scale))
             
         rect = [ax3_pos.bounds[0], ax2_pos.bounds[1]+diff/2., 
@@ -350,13 +344,20 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     
     return None
     
-def plot_detections_in_stamp(ax3, tdhst_cat, w, hdr, slit_angle, 
-            rect_pad_x=None, rect_pad_y=None):
-            
-    w_x0, w_y0 = w.wcs_pix2world(0, 0, 1)
-    # Should be square:
-    w_x1, w_y1 = w.wcs_pix2world(hdr['naxis1'], hdr['naxis2'], 1)
+def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos, 
+        slit_angle, pscale_ratio=1., x0=0., y0=0., rect_pad_x=None, rect_pad_y=None):
     
+    ## Define the "near the slit" polygon, to determine if we should plot.
+    if (rect_pad_x is not None) and (rect_pad_y is not None):
+        rect = np.array([rect_pad_x, rect_pad_y])
+        corners = rect.T
+        w_x0, w_y0 = w.wcs_pix2world(min(rect_pad_x), min(rect_pad_y), 1)
+        w_x1, w_y1 = w.wcs_pix2world(max(rect_pad_x), max(rect_pad_y), 1)
+    else:
+        w_x0, w_y0 = w.wcs_pix2world(0, 0, 1)
+        w_x1, w_y1 = w.wcs_pix2world(hdr['naxis1'], hdr['naxis2'], 1)
+        corners = None
+                
     w_x = np.array([min(w_x0, w_x1), max(w_x0, w_x1)])
     w_y = np.array([min(w_y0, w_y1), max(w_y0, w_y1)])
     
@@ -370,37 +371,73 @@ def plot_detections_in_stamp(ax3, tdhst_cat, w, hdr, slit_angle,
     
     wh_in_stamp = np.intersect1d(wh_ra, wh_dec)
     
+    colors = ['cyan', 'orange', 'magenta', 'yellow', 'red', 'MediumSlateBlue']
+    
+    # Find the y_pos in un-rot coord of the primary object:
+    ind_prim = np.where(tdhst_cat['id'] == np.float64(self.primID))[0][0]
+    d2r = np.pi/180. 
+    px, py = w.wcs_world2pix(tdhst_cat['ra'][ind_prim], tdhst_cat['dec'][ind_prim], 1)
+    x_prim_HST, y_prim_HST = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0) 
+    
     if len(wh_in_stamp) > 0:
+        color_ind = 0
         for ind in wh_in_stamp:
-            ## Check if it's within 2" of the slit, to plot txt or not
-            
-            #pos_11,pos_21,pos_22,pos_12,pos_11
-            if (rect_pad_x is not None) and (rect_pad_y is not None):
-                rect = np.array([rect_pad_x, rect_pad_y])
-                corners = rect.T
-            else:
-                corners = None
-            
-            plot_detection(ax3, tdhst_cat, w, slit_angle, ind, corners=corners)
+            color_ind = plot_detection(ax3, ax2d, tdhst_cat, w, 
+                main_y_pos, prim_y_pos, y_prim_HST, 
+                slit_angle, pscale_ratio, x0, y0, 
+                ind, corners=corners, 
+                colors=colors, color_ind=color_ind)
     
     return None
     
-def plot_detection(ax, tdhst_cat, w, slit_angle, ind, corners=None):
-    # For every index, plot a circle:
+def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos, 
+            y_prim_HST, slit_angle, pscale_ratio, 
+            x0, y0, ind, corners=None, colors=['cyan'], color_ind=0):
+        
     px, py = w.wcs_world2pix(tdhst_cat['ra'][ind], tdhst_cat['dec'][ind], 1)
-    circle = plt.Circle((px, py), 10, color='cyan', fill=False)
-    ax.add_artist(circle)
     
     if corners is not None:
         # Check if it's in region:
         if is_in_region(corners, px, py):
-            ang = slit_angle+90
-            if np.abs(ang) > 90:
-                ang = ang - 180.
-            ax.text(px+12, py-12, str(np.int64(tdhst_cat['id'][ind])), color='cyan', 
-                    fontsize=8., rotation=ang, clip_on=True)
+            plot_ind = True
+        else:
+            plot_ind = False
             
-    return None
+    else:
+        plot_ind = True
+        
+    if plot_ind:
+        # Plot a circle, ID for objects within region:
+        circle = plt.Circle((px, py), 10, color=colors[color_ind], fill=False)
+        ax.add_artist(circle)
+        ang = slit_angle
+        if np.abs(ang) > 90:
+            ang = ang - 180.
+        ax.text(px+12, py-12, str(np.int64(tdhst_cat['id'][ind])), color=colors[color_ind], 
+                fontsize=7., rotation=ang, clip_on=True, fontweight='bold') #'heavy')
+        
+        d2r = np.pi/180. 
+        slit_x, slit_y = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0)
+        # Convert to slit pixels
+        slit_y = slit_y/pscale_ratio
+        # Relative to primary object:
+        y_prim_HST = y_prim_HST/pscale_ratio
+        y_pos = prim_y_pos - (y_prim_HST - slit_y)
+        
+        if np.abs(y_pos - main_y_pos) <= 0.5:
+            length = 0.08
+        else:
+            length = 0.05
+            
+        plot_spatial_pos(ax2d, y_pos, 
+                    ls='-', color=colors[color_ind], length=length)
+        
+        color_ind += 1
+        if color_ind == len(colors):
+            color_ind = 0
+        
+    return color_ind
+
     
 def rot_coord_angle(arr, th, x0=0., y0=0.):
     """
@@ -408,7 +445,6 @@ def rot_coord_angle(arr, th, x0=0., y0=0.):
     x0,y0 are center of rot.
     x1_off, y1_off are arbitrary offset to apply after transform.
     """
-    
     # Rotate around zp if given:
     pos_arr = np.array([arr[0]-x0, arr[1]-y0])
     
@@ -480,7 +516,26 @@ def is_in_region(corners, px, py):
                 return False
         else:
             return False
-        
+      
+def get_primary_y_pos(self, band):
+    query_str = "maskname = '%s' AND primaryID = '%s' AND aperture_no = %s" % (self.maskname, self.primID, 1)
+    query = query_db(query_str)
+    
+    if not type(query) == type(None):
+        if len(query) == 1:
+            query_info = query[0]
+            spec1d_flux, spec1d_err, spec1d_light_profile, spec1d_hdr = \
+                    read_spec1d(query_info['spec1d_file_'+band.lower()])
+                    
+            prim_y_pos = spec1d_hdr['ypos']
+            
+        else:
+            prim_y_pos = -1.
+    else:
+        prim_y_pos = -1.
+    
+    return prim_y_pos
+    
     
 def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
     lines_lam0 = [6564.60, 4862.71, 
@@ -512,10 +567,10 @@ def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
     return None
     
     
-def plot_spatial_pos(ax, spec1d_hdr, ls='-'):
-    #ax.axhline(y=spec1d_hdr['ypos'], ls='-', color='white')
-    ax.axhline(y=spec1d_hdr['ypos'], xmin=0., xmax=0.1, ls='-', color='white')
-    ax.axhline(y=spec1d_hdr['ypos'], xmin=0.9, xmax=1., ls='-', color='white')
+def plot_spatial_pos(ax, ypos, ls='-', color='white', length=0.1):
+    pix_center_off = 0.5
+    ax.axhline(y=ypos+pix_center_off, xmin=0., xmax=length, ls='-', color=color)
+    ax.axhline(y=ypos+pix_center_off, xmin=1.-length, xmax=1., ls='-', color=color)
     
     return None
     
@@ -526,7 +581,7 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
     ax = self.fig.add_subplot(gs[0,0])
     
     ax.set_title(band+' band',fontproperties=font_header,
-                  x=0.5, y=0.96)
+                  x=0.5, y=0.97)
     ax.set_xlabel('$\lambda$ (Obs. frame, $\mu \mathrm{m}$)',fontproperties=font_axes)
     #ax.set_xlabel('$\lambda$ (Observed frame, $\AA$)',fontproperties=font_axes)
     ax.set_ylabel('F$_{\lambda}$ (erg/s/cm$^2$/$\AA$)',fontproperties=font_axes)
@@ -549,38 +604,35 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         spec1d_x = np.linspace(lam0, lamend, num=len(spec1d_flux))
         spec1d_y = spec1d_flux
 
-
         # Trim everything similar to how spec2d was trimmed:
         spec1d_x = spec1d_x[left_inds[1]:right_inds[0]]/1.e4   # plotting um
         spec1d_y = spec1d_y[left_inds[1]:right_inds[0]]
         spec1d_err = spec1d_err[left_inds[1]:right_inds[0]]
 
         xlim = [spec1d_x.min(), spec1d_x.max()]
-
         
-        # Check if we're going to mask skylines:
-        if self.masksky_cb.isChecked():
-            wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)   
-        else:
-            wh_cont = None
-            wh_cont_sky = None
-
 
         spec1d_errlo = spec1d_y-spec1d_err
         spec1d_errhi = spec1d_y+spec1d_err
         
         plot_lines(ax,self.z, spec1d_x, spec1d_x, ls='-')
         
+        if self.masksky_cb.isChecked():
+            wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)
+        else:
+            wh_cont, wh_cont_sky = None, None
+        
+        # Check if we're going to mask skylines:
         if wh_cont is not None:
-            # Masking skylines
-            ymax = 0.
             spec1d_x_concat = np.array([])
             spec1d_y_concat = np.array([])
+            spec1d_y_err_concat = np.array([])
             for wh in wh_cont:
                 xx = spec1d_x[wh]
                 yy_lo = spec1d_errlo[wh]
                 yy_hi = spec1d_errhi[wh]
                 yy = spec1d_y[wh]
+                yerr = spec1d_err[wh]
                 
                 ############
                 # If you're smoothing:
@@ -590,6 +642,7 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                             yy_lo = smooth_arr(yy_lo, npix=np.int(self.smooth_num.text()))
                             yy_hi = smooth_arr(yy_hi, npix=np.int(self.smooth_num.text()))
                             yy = smooth_arr(yy, npix=np.int(self.smooth_num.text()))
+                            yerr = smooth_arr(yerr, npix=np.int(self.smooth_num.text()))
                     except:
                         # Invalid smooth input: no smoothing
                         pass
@@ -598,10 +651,11 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                 # Concatenate onto spec1d_y_concat:
                 spec1d_x_concat = np.append(spec1d_x_concat, xx)
                 spec1d_y_concat = np.append(spec1d_y_concat, yy)
+                spec1d_y_err_concat = np.append(spec1d_y_err_concat, yerr)
                 
-                if (min(wh) > 20) and (max(wh) < len(spec1d_x)-20):
-                    if yy_hi.max() > ymax:
-                        ymax = yy_hi.max()
+                # if (min(wh) > 20) and (max(wh) < len(spec1d_x)-20):
+                #     if yy_hi.max() > ymax:
+                #         ymax = yy_hi.max()
                 
                 # plot the flux errors
                 ax.fill_between(xx, yy_lo, yy_hi, \
@@ -621,6 +675,7 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                         spec1d_errlo = smooth_arr(spec1d_errlo, npix=np.int(self.smooth_num.text()))
                         spec1d_errhi = smooth_arr(spec1d_errhi, npix=np.int(self.smooth_num.text()))
                         spec1d_y = smooth_arr(spec1d_y, npix=np.int(self.smooth_num.text()))
+                        spec1d_err = smooth_arr(spec1d_err, npix=np.int(self.smooth_num.text()))
                 except:
                     # Invalid smooth input: no smoothing
                     pass
@@ -629,8 +684,9 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
             # Concatenate for fitting array:
             spec1d_x_concat = spec1d_x
             spec1d_y_concat = spec1d_y
+            spec1d_y_err_concat = spec1d_err
             
-            ymax = spec1d_errhi[20:-20].max()
+            #ymax = spec1d_errhi[20:-20].max()
             
             ax.fill_between(spec1d_x, spec1d_errlo, spec1d_errhi, \
                   color='b', \
@@ -640,59 +696,62 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
             ax.plot(spec1d_x,spec1d_y, 'b-', lw=1)
         
         
-        range_spec = spec1d_y_concat[np.isfinite(spec1d_y_concat)].copy()
-        range_spec.sort()
-        
-        if self.masksky_cb.isChecked():
-            ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
-                        ymax])
-        else:
-            # ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
-            #             ymax])
-            ax.set_ylim([min(range_spec[.02*len(range_spec)]*.25,0.), 
-                         range_spec[.99*len(range_spec)]])
+        # Get range_spec for using all points that aren't skylines
+
+        # Skip very edge of spectra:
+        spec1d_y_trim = spec1d_y_concat[20:len(spec1d_y_concat)-20]
+        spec1d_err_trim = spec1d_y_err_concat[20:len(spec1d_y_err_concat)-20]
+        wh_no_sky, wh_sky = wh_skylines(spec1d_err_trim, cutoff=cutoff, full=True)  
+        spec1d_y_nosky = spec1d_y_trim[wh_no_sky]
+        spec1d_err_nosky = spec1d_err_trim[wh_no_sky]
+
+        finite = np.isfinite(spec1d_y_nosky)
+        y_finite = spec1d_y_nosky[finite].copy()
+        y_err_finite = spec1d_err_nosky[finite].copy()
+
+        # Find median, std of range_spec:
+        median = np.median(y_finite)
+        std = np.std(y_finite)
+        ax.set_ylim([median-3*std, max(y_finite+y_err_finite)])
 
         ax.set_xlim(xlim)
-        
-            
+
         if wh_cont_sky is not None:
-            # Plot grey boxes where skylines are:
-            # based on wh_cont_sky:
+            # Plot grey boxes where skylines are, based on wh_cont_sky:
             ylim = ax.get_ylim()
-            
+
             for wh in wh_cont_sky:
                 ax.fill_between([spec1d_x[wh].min(), spec1d_x[wh].max()], \
                                 [ylim[0], ylim[0]], [ylim[1],ylim[1]], \
                                 color='grey', \
                                 facecolor='grey', alpha=0.25)
-                                
-                                # darkgrey
-        
+
 
         spec1d_y = None
         spec1d_err = None
         range_spec = None
 
-
-
     # If there isn't data: Turn the frame off:
     if spec1d_flux is None:
           ax.set_axis_off()
           
-          
     return ax, spec1d_flux, spec1d_hdr, spec1d_light_profile
     
     
-def wh_skylines(err_spec, cutoff=3.):
+def wh_skylines(err_spec, cutoff=3., full=False):
     median = np.median(err_spec)
     
     wh_sky = np.where(err_spec >= cutoff*median)[0]
     wh_nosky = np.where(err_spec < cutoff*median)[0]
     
-    wh_cont = wh_continuous(wh_nosky)
-    wh_cont_sky = wh_continuous(wh_sky)
-    
-    return wh_cont, wh_cont_sky
+    if full:
+        return wh_nosky, wh_sky
+        
+    else:
+        wh_cont = wh_continuous(wh_nosky)
+        wh_cont_sky = wh_continuous(wh_sky)
+        
+        return wh_cont, wh_cont_sky
     
 def wh_continuous(wh_arr):
     wh_arrs = []
