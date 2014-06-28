@@ -50,7 +50,6 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         # Set default size of the window:
         if screen_res is not None:
             screen_res_native = screen_res
-            print screen_res_native
             mult = 1.55 #1.3
             if screen_res[1]*mult < screen_res[0]:
                 screen_res[0] = screen_res[1]*mult

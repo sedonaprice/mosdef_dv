@@ -38,6 +38,14 @@ Within this directory, run:
 
 	mosdef_dv
 
+##### Shortcuts:
+- Cmd/Ctrl+Left: Previous object in mask
+- Cmd/Ctrl+Right: Next object in mask
+- Cmd/Ctrl+O: Zoom
+- Cmd/Ctrl+P: Pan
+- Esc: Return to original plot view
+- Cmd/Ctrl+Q: Quit
+
 
 ---
 

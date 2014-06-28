@@ -32,6 +32,9 @@ try:
     from shapely.geometry import Polygon, Point
     shapely_installed = True
 except:
+    print "*******************************************"
+    print "* Python package 'shapley' not installed. *"
+    print "*******************************************"
     shapely_installed = False
 
 ############
@@ -70,13 +73,8 @@ def plotObject(self):
 
         has_bands = []
         for b in bands:
-            #if self.aper_no == 1:
             if self.query_info['spec2d_file_'+b.lower()] != '---':
-                # If it isn't the default, 'band not observed' option put in DB:
                 has_bands.append(b)
-        
-        #if message:        
-        #    print has_bands
                             
         # setup the overall gridspec:
         gs_main = gridspec.GridSpec(len(has_bands),1, 
@@ -113,7 +111,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     # SPEC2D plot prep:
             
     # Add 2D spectrum axis:
-    ax2 = self.fig.add_subplot(gs[1,0]) # Not the leftmost
+    ax2 = self.fig.add_subplot(gs[1,0])
     ax2.set_axis_off()
     
     # Read in data from files
@@ -289,9 +287,6 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
                 slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=1., pscale_3dhst=pscale_3dhst)
         
-        ### Test:
-        ##ax3.plot(rect_padded_x, rect_padded_y, lw=1, ls='-', c='r') 
-        
         # Get info for primary object:
         prim_y_pos = get_primary_y_pos(self, band)
         main_y_pos = spec1d_hdr['ypos']
@@ -411,13 +406,24 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
         circle = plt.Circle((px, py), 10, color=colors[color_ind], fill=False)
         ax.add_artist(circle)
         ang = slit_angle
+        xoff = 25
+        yoff = -7
         if np.abs(ang) > 90:
             ang = ang - 180.
-        ax.text(px+12, py-12, str(np.int64(tdhst_cat['id'][ind])), color=colors[color_ind], 
-                fontsize=7., rotation=ang, clip_on=True, fontweight='bold') #'heavy')
-        
+            xoff = -35
+            yoff = 10
+            
         d2r = np.pi/180. 
+
         slit_x, slit_y = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0)
+        
+        # Plot text relative to slit positions:
+        text_x, text_y = rot_corner_coords([[slit_x+xoff, slit_y+yoff]], 
+                    slit_angle*d2r, x0=x0, y0=y0)
+        ax.text(text_x, text_y, str(np.int64(tdhst_cat['id'][ind])), 
+                color=colors[color_ind], fontsize=7., rotation=ang, 
+                clip_on=True, fontweight='bold')
+                
         # Convert to slit pixels
         slit_y = slit_y/pscale_ratio
         # Relative to primary object:
@@ -506,8 +512,7 @@ def is_in_region(corners, px, py):
         else:
             return False
     else:
-        # If shapely or GEOS isn't installed, just plot the text for a crude cut:
-        # use min, max of x/y pos:
+        # If shapely or GEOS isn't installed, just use min, max of x/y pos:
         corn_x, corn_y = corners.T
         if (py >= min(corn_y)) and (py <= max(corn_y)):
             if (px >= min(corn_x)) and (px <= max(corn_x)):
@@ -653,10 +658,6 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                 spec1d_y_concat = np.append(spec1d_y_concat, yy)
                 spec1d_y_err_concat = np.append(spec1d_y_err_concat, yerr)
                 
-                # if (min(wh) > 20) and (max(wh) < len(spec1d_x)-20):
-                #     if yy_hi.max() > ymax:
-                #         ymax = yy_hi.max()
-                
                 # plot the flux errors
                 ax.fill_between(xx, yy_lo, yy_hi, \
                       color='b', \
@@ -773,7 +774,6 @@ def wh_continuous(wh_arr):
     
 def smooth_arr(arr, npix=3.):
     # Call this within a continuous check, to only smooth a little bit at a time.
-    
     if len(arr) < 2*npix+1:
         # If the truncated section is too short, reset the npix just for that part
         npix = np.floor((len(arr)-1)/2.)
