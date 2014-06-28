@@ -104,7 +104,8 @@ def cat_struct():
     # Find out what data you have: use 1D spectra directory
     basedir_1d = read_path('MOSDEF_DV_1D')
     basedir_2d = read_path('MOSDEF_DV_2D')
-    files = os.listdir(basedir_1d)
+    #files = os.listdir(basedir_1d)
+    files = os.listdir(basedir_2d)
     
     # Returns all files:  including aperture number, bands, masknames, etc.
     
@@ -146,8 +147,6 @@ def cat_struct():
             all_df = all_df.append(dfNew, ignore_index=True)
             
         else:
-            # print splt
-            # raise ValueError(len(splt))
             pass
 
     # DF containing unique objects:
@@ -157,7 +156,7 @@ def cat_struct():
     
     filters = ['K','H','J','Y']
     
-    # Open MOSDEF 0d catalog to get objID for objects that are not primary
+    # Open MOSDEF 0d catalog to try to get objID for objects that are not primary
     mosdef_0d_cat = read_0d_cat()
     
     cat = []
@@ -173,25 +172,30 @@ def cat_struct():
     keys.append('hst_file')
 
     for ii in xrange(len(obj_df)):
-        ## File1d note: might also be named after the identified object number --
-        ##  in which case will need to reference master catalog to get 
-        ##  objID for use in maskname
         i = obj_df.index[ii]
         
-        # Match in 0D catalog
+        # Look for a match in 0D catalog:
         try:
             wh_prim = np.where(mosdef_0d_cat['SLITOBJNAME'] == np.int64(obj_df.ix[i]['primID']))[0]
             wh_aper = np.where(mosdef_0d_cat['APERTURE_NO'] == np.int64(obj_df.ix[i]['aper_no']))[0]
-            wh = np.intersect1d(wh_prim, wh_aper)[0]
             prim_id_name = np.int64(obj_df.ix[i]['primID'])
-        except:
-            # Has 'S' at the beginning of obj name
-            prim_id_name = np.int64(obj_df.ix[i]['primID'][1:])
-            wh_prim = np.where(mosdef_0d_cat['SLITOBJNAME'] == np.int64(obj_df.ix[i]['primID'][1:]))[0]
-            wh_aper = np.where(mosdef_0d_cat['APERTURE_NO'] == np.int64(obj_df.ix[i]['aper_no']))[0]
             try:
                 wh = np.intersect1d(wh_prim, wh_aper)[0]
             except:
+                wh = None
+
+        except:
+            if obj_df.ix[i]['primID'][0] == 'S':
+                # Has 'S' at the beginning of obj name
+                prim_id_name = np.int64(obj_df.ix[i]['primID'][1:])
+                wh_prim = np.where(mosdef_0d_cat['SLITOBJNAME'] == np.int64(obj_df.ix[i]['primID'][1:]))[0]
+                wh_aper = np.where(mosdef_0d_cat['APERTURE_NO'] == np.int64(obj_df.ix[i]['aper_no']))[0]
+                try:
+                    wh = np.intersect1d(wh_prim, wh_aper)[0]
+                except:
+                    wh = None
+            else:
+                prim_id_name = np.int64(obj_df.ix[i]['primID'])[0]
                 wh = None
         
         file_1d_base = obj_df.ix[i]['maskname']
@@ -208,7 +212,7 @@ def cat_struct():
             file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+'.'+extra_1d+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
              
-            #objID = -99  # Temp until we get master cat references.
+            # Get identified objID if there is an entry in the master cat:
             if wh is not None:
                 objID = mosdef_0d_cat['ID'][wh]
             else:

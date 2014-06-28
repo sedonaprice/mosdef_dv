@@ -44,7 +44,16 @@ def angle_offset(maskname, ID, field=None, mask_PA=0.,
 	#pa_tdhst = pstamp_hdr['ORIENTAT']
 	
 	# Directly calculate, so you're using the same thing DS9 is.
-	pa_tdhst = pos_angle(pstamp_hdr['CD2_1'], pstamp_hdr['CD2_2'])
+	try:
+	    cd21 = pstamp_hdr['CD2_1']
+	except:
+	    cd21 = 0.
+	try:
+	    cd22 = pstamp_hdr['CD2_2']
+	except:
+	    cd22 = 0.
+	    
+	pa_tdhst = pos_angle(cd21, cd22)
 	
 
 	

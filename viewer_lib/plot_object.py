@@ -287,9 +287,13 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
                 slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=1., pscale_3dhst=pscale_3dhst)
         
-        # Get info for primary object:
-        prim_y_pos = get_primary_y_pos(self, band)
-        main_y_pos = spec1d_hdr['ypos']
+        # Get info for primary object, if the 1D spectra exist:
+        try:
+            prim_y_pos = get_primary_y_pos(self, band)
+            main_y_pos = spec1d_hdr['ypos']
+        except:
+            prim_y_pos = -1
+            main_y_pos = -1
         
         w = WCS(pstamp_hdr)
         
@@ -409,9 +413,13 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
         xoff = 25
         yoff = -7
         if np.abs(ang) > 90:
-            ang = ang - 180.
             xoff = -35
             yoff = 10
+            ang = ang - np.sign(ang)*180.
+            if np.abs(ang) > 90:
+                ang = ang - np.sign(ang)*180.
+                xoff = 35
+                yoff = 15
             
         d2r = np.pi/180. 
 

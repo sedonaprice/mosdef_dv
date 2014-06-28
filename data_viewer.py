@@ -620,11 +620,11 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         return None   
             
     def set_initial_z(self):
-        if self.z_mosfire_1d >= 0.:
+        if self.z_mosfire_1d > 0.:
             z = self.z_mosfire_1d
-        elif self.z_spec >= 0.:
+        elif self.z_spec > 0.:
             z = self.z_spec
-        elif self.z_gris >= 0.:
+        elif self.z_gris > 0.:
             z = self.z_gris
         else:
             z = self.z_phot
