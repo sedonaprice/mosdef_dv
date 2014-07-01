@@ -283,25 +283,27 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
         field = maskname_interp(self.maskname)[0]
         tdhst_cat = read_3dhst_cat(field, vers=tdhst_vers)
         
-        # Define region with 1" padding around slit area, for plotting object IDs.
-        rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
-                slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=1., pscale_3dhst=pscale_3dhst)
+        # If the tdhst_cat is found:
+        if tdhst_cat is not None:
+            # Define region with 1" padding around slit area, for plotting object IDs.
+            rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
+                    slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=1., pscale_3dhst=pscale_3dhst)
         
-        # Get info for primary object, if the 1D spectra exist:
-        try:
-            prim_y_pos = get_primary_y_pos(self, band)
-            main_y_pos = spec1d_hdr['ypos']
-        except:
-            prim_y_pos = -1
-            main_y_pos = -1
+            # Get info for primary object, if the 1D spectra exist:
+            try:
+                prim_y_pos = get_primary_y_pos(self, band)
+                main_y_pos = spec1d_hdr['ypos']
+            except:
+                prim_y_pos = -1
+                main_y_pos = -1
         
-        w = WCS(pstamp_hdr)
+            w = WCS(pstamp_hdr)
         
-        plot_detections_in_stamp(self, ax3, ax2, tdhst_cat, w, 
-                    main_y_pos, prim_y_pos, slit_angle, 
-                    pscale_ratio=pscale_mosfire/pscale_3dhst, 
-                    x0=x0, y0=y0+y0_off, 
-                    rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y)
+            plot_detections_in_stamp(self, ax3, ax2, tdhst_cat, w, 
+                        main_y_pos, prim_y_pos, slit_angle, 
+                        pscale_ratio=pscale_mosfire/pscale_3dhst, 
+                        x0=x0, y0=y0+y0_off, 
+                        rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y)
         ###################################################################
         
         ax3.set_xlim(xlim)

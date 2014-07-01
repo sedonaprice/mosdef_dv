@@ -65,40 +65,41 @@ def read_3dhst_cat(field, vers='2.1'):
 
     path = read_path('TDHST_CAT')
     # clean up any trailing slash
-    if path[-1] == '/':
-        path = path[0:-1]
+    if path is not None:
+        if path[-1] == '/':
+            path = path[0:-1]
 
-    if ((field.upper() == 'GOODS-N') and (vers == '4.0')):
-        field_name = 'GOODSN'
-    elif ((field.upper() == 'GOODS-S') and (vers == '4.0')):
-        field_name = 'GOODSS'
-    else:
-        field_name = field
+        if ((field.upper() == 'GOODS-N') and (vers == '4.0')):
+            field_name = 'GOODSN'
+        elif ((field.upper() == 'GOODS-S') and (vers == '4.0')):
+            field_name = 'GOODSS'
+        else:
+            field_name = field
 
-    filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
+        filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
 
-    exist = os.path.isfile(filename)
-    if exist:
-        hdulist = fits.open(filename)
-        data = hdulist[1].data
-    
-        hdulist.close()
-
-        return data
-    else:
-        filename = path+'/v'+vers+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
-        
         exist = os.path.isfile(filename)
         if exist:
             hdulist = fits.open(filename)
             data = hdulist[1].data
-
+    
             hdulist.close()
 
             return data
-        
         else:
-            return None
+            filename = path+'/v'+vers+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
+        
+            exist = os.path.isfile(filename)
+            if exist:
+                hdulist = fits.open(filename)
+                data = hdulist[1].data
+
+                hdulist.close()
+
+                return data
+        
+            else:
+                return None
 
 def read_spec1d_comments(filename, band, optimal=True):
     data, data_err, light_profile, hdr = read_spec1d(filename, optimal=optimal)
@@ -248,10 +249,15 @@ def read_paths():
     filename = data_dir+'/mosdef_dv_paths.txt'
     if os.path.exists(filename):
  
-        path_info = np.genfromtxt(filename, dtype=None,
+        path_info = np.genfromtxt(filename, dtype=None, 
                     names=['label', 'path'])
         
-        return pd.DataFrame(path_info)
+        df = pd.DataFrame(path_info)
+        for i in xrange(len(df)):
+            if df['path'][i] == 'not_set':
+                df['path'][i] = ''
+                
+        return df
         
     else:
         return None
@@ -264,6 +270,8 @@ def read_path(key):
         try:
             path = path_info['path'][path_info['label']==key].values[0]
         except:
+            path = None
+        if path == 'not_set':
             path = None
         return path
     else:

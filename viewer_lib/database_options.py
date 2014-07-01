@@ -164,6 +164,10 @@ class ChangeDBinfo(QDialog, DB_Options_Dialog):
                 MOSDEF_DV_MEAS, MOSDEF_DV_PSTAMP,
                 MOSDEF_DV_BMEP_Z, TDHST_CAT]
                 
+        for i,p in enumerate(paths):
+            if p == '':
+                paths[i] = 'not_set'
+                
         df = pd.DataFrame({'label': labels,
                             'path': paths})
                             
