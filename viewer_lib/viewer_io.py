@@ -108,14 +108,14 @@ def read_spec1d_comments(filename, band, optimal=True):
     # UCMEAN
     comments = []
     try:
-        str_ucomment = 'Comment: '+hdr['UCOMMENT']
+        str_ucomment = band+' band comment: '+hdr['UCOMMENT']
         ## Testing:
         #str_ucomment = band+' band comment: '+hdr['FIELD']
         comments.append(str_ucomment)
     except:
         pass
     try:
-        str_ucmean = 'User code: '+hdr['UCMEAN']\
+        str_ucmean = band+' band user code: '+hdr['UCMEAN']\
         ## Testing:
         #str_ucmean = band+' band user code: '+hdr['VERSION']+' and more text, wheeee'
         comments.append(str_ucmean)
