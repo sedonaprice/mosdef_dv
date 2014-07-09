@@ -59,6 +59,9 @@ Within this directory, run:
 have a nice bundle of most of the extra packages you need.
 There are academic licences for both of these.*
 
-
-
+Easy way to install the dependencies (using Homebrew, alternates also exist for MacPorts and Fink):
+- brew install pyqt
+- brew install GEOS
+- pip install pyregion
+- pip install Shapley
 
