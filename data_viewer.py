@@ -35,10 +35,10 @@ from viewer_lib.menu import DV_Menu
 from viewer_lib.layout import DV_Layout
 
 
-class NavigationToolbar(NavigationToolbar):
-    # only display the buttons we need
-    toolitems = [t for t in NavigationToolbar.toolitems if
-                 t[0] in ('Home', 'Pan', 'Zoom')]
+# class NavigationToolbar(NavigationToolbar):
+#     # only display the buttons we need
+#     toolitems = [t for t in NavigationToolbar.toolitems if
+#                  t[0] in ('Home', 'Pan', 'Zoom')]
 
 
 class DataViewer(QMainWindow, DV_Menu, DV_Layout):
