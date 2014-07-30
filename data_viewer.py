@@ -121,10 +121,10 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
         # Create the navigation toolbar, tied to the canvas
         self.mpl_toolbar = NavigationToolbar(self.canvas, self.main_frame)
-        # Create shortcuts:
-        self.zoom = self.make_toolbar_shortcut('&Zoom', "Ctrl+O", self.toolbar_zoom)
-        self.pan = self.make_toolbar_shortcut('&Pan', "Ctrl+P", self.toolbar_pan)
-        self.home = self.make_toolbar_shortcut('&Home', "Esc", self.toolbar_home)
+        # # Create shortcuts:
+        # self.zoom = self.make_toolbar_shortcut('&Zoom', "Ctrl+O", self.toolbar_zoom)
+        # self.pan = self.make_toolbar_shortcut('&Pan', "Ctrl+P", self.toolbar_pan)
+        # self.home = self.make_toolbar_shortcut('&Home', "Esc", self.toolbar_home)
         
         
         ######
