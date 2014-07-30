@@ -35,10 +35,10 @@ from viewer_lib.menu import DV_Menu
 from viewer_lib.layout import DV_Layout
 
 
-# class NavigationToolbar(NavigationToolbar):
-#     # only display the buttons we need
-#     toolitems = [t for t in NavigationToolbar.toolitems if
-#                  t[0] in ('Home', 'Pan', 'Zoom')]
+class NavigationToolbar(NavigationToolbar):
+    # only display the buttons we need
+    toolitems = [t for t in NavigationToolbar.toolitems if
+                 t[0] in ('Home', 'Pan', 'Zoom')]
 
 
 class DataViewer(QMainWindow, DV_Menu, DV_Layout):
@@ -121,10 +121,10 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
         # Create the navigation toolbar, tied to the canvas
         self.mpl_toolbar = NavigationToolbar(self.canvas, self.main_frame)
-        # # Create shortcuts:
-        # self.zoom = self.make_toolbar_shortcut('&Zoom', "Ctrl+O", self.toolbar_zoom)
-        # self.pan = self.make_toolbar_shortcut('&Pan', "Ctrl+P", self.toolbar_pan)
-        # self.home = self.make_toolbar_shortcut('&Home', "Esc", self.toolbar_home)
+        # Create shortcuts:
+        self.zoom = self.make_toolbar_shortcut('&Zoom', "Ctrl+O", self.toolbar_zoom)
+        self.pan = self.make_toolbar_shortcut('&Pan', "Ctrl+P", self.toolbar_pan)
+        self.home = self.make_toolbar_shortcut('&Home', "Esc", self.toolbar_home)
         
         
         ######
