@@ -178,6 +178,8 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
               vmin = range_spec[.05*len(range_spec)], \
               vmax = range_spec[.95*len(range_spec)], \
               interpolation='None', origin='lower')
+              
+        ax2.format_coord = make_format_ax2(ax2, spec2d_x)
       
         xlim = ax2.get_xlim()
         ylim = ax2.get_ylim()
@@ -796,4 +798,14 @@ def smooth_arr(arr, npix=3.):
     
     return yy_out
     
-    
+def make_format_ax2(ax, wavearr):
+    # Change axis format so that it shows wavelength, not x pixel pos
+    # wavearr: in um
+    def format_coord(x, y):
+        x_round = np.int(np.round(x))
+        if x_round < 0:
+            x_round = 0
+        if x_round > len(wavearr)-1:
+            x_round = len(wavearr)-1
+        return 'wave=%0.3f [um], y=%0.3f' % (wavearr[x_round],  y)
+    return format_coord
