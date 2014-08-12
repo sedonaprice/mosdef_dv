@@ -799,7 +799,7 @@ def smooth_arr(arr, npix=3.):
     return yy_out
     
 def make_format_ax2(ax, wavearr):
-    # Change axis format so that it shows wavelength, not x pixel pos
+    # Change axis format so that it shows wavelength, as well as x pixel pos
     # wavearr: in um
     def format_coord(x, y):
         x_round = np.int(np.round(x))
@@ -807,5 +807,5 @@ def make_format_ax2(ax, wavearr):
             x_round = 0
         if x_round > len(wavearr)-1:
             x_round = len(wavearr)-1
-        return 'wave=%0.3f [um], y=%0.3f' % (wavearr[x_round],  y)
+        return 'wave=%1.3f [um]    x=%1.3f    y=%1.3f' % (wavearr[x_round], x,  y)
     return format_coord
