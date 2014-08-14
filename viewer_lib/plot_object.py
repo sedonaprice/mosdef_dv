@@ -136,7 +136,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     
     while l_flag == 0:
         # Check finite:
-        if (np.any(np.isfinite(spec2d[:,li])) == False) or \
+        if (np.all(np.isfinite(spec2d[:,li])) == False) or \
             (spec2d[:,li].min() == 0 and spec2d[:,li].max() == 0):
             li += 1
         else:
@@ -145,7 +145,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
             
     while r_flag == 0:
         # Check finite:
-        if (np.any(np.isfinite(spec2d[:,ri])) == False) or \
+        if (np.all(np.isfinite(spec2d[:,ri])) == False) or \
             (spec2d[:,ri].min() == 0 and spec2d[:,ri].max() == 0):
             ri -= 1
         else:
