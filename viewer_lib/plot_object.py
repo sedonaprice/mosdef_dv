@@ -117,8 +117,8 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     # Read in data from files
     spec2d, spec2d_hdr = read_spec2d(self.query_info['spec2d_file_'+band.lower()])
     
-    lam0 = spec2d_hdr['crval1']
-    lamdelt = spec2d_hdr['cdelt1']/spec2d_hdr['crpix1']
+    lamdelt = spec2d_hdr['cdelt1']
+    lam0 = spec2d_hdr['crval1'] - ((spec2d_hdr['crpix1']-1)*spec2d_hdr['cdelt1'])
     lamend = lam0+lamdelt*(np.shape(spec2d)[1]-1)
     spec2d_x = np.linspace(lam0, lamend, num=np.shape(spec2d)[1])/1.e4   # plotting um
               
@@ -179,7 +179,7 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
               vmax = range_spec[.95*len(range_spec)], \
               interpolation='None', origin='lower')
               
-        ax2.format_coord = make_format_ax2(ax2, spec2d_x)
+        ax2.format_coord = make_format_ax2(ax2, spec2d_hdr, left_inds[1])
       
         xlim = ax2.get_xlim()
         ylim = ax2.get_ylim()
@@ -615,8 +615,8 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
     if spec1d_flux is not None:     
         # Need to construct wavelength from header information, just like in kinematics work
 
-        lam0 = spec1d_hdr['crval1']
-        lamdelt = spec1d_hdr['cdelt1']/spec1d_hdr['crpix1']
+        lamdelt = spec1d_hdr['cdelt1']
+        lam0 = spec1d_hdr['crval1'] - ((spec1d_hdr['crpix1']-1)*spec1d_hdr['cdelt1'])
         lamend = lam0+lamdelt*(len(spec1d_flux)-1)
         spec1d_x = np.linspace(lam0, lamend, num=len(spec1d_flux))
         spec1d_y = spec1d_flux
@@ -798,14 +798,12 @@ def smooth_arr(arr, npix=3.):
     
     return yy_out
     
-def make_format_ax2(ax, wavearr):
+def make_format_ax2(ax, hdr, start_ind):
     # Change axis format so that it shows wavelength, as well as x pixel pos
     # wavearr: in um
     def format_coord(x, y):
-        x_round = np.int(np.round(x))
-        if x_round < 0:
-            x_round = 0
-        if x_round > len(wavearr)-1:
-            x_round = len(wavearr)-1
-        return 'wave=%1.3f [um]    x=%1.3f    y=%1.3f' % (wavearr[x_round], x,  y)
+        lamdelt = hdr['cdelt1']
+        lam0 = hdr['crval1'] - ((hdr['crpix1']-1)*hdr['cdelt1']) + (start_ind)*hdr['cdelt1']
+        wave = (lam0 + lamdelt*x)/1.e4
+        return 'wave=%1.5f [um]    x=%1.5f    y=%1.5f' % (wave, x,  y)
     return format_coord
