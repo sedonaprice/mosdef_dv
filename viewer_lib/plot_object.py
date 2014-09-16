@@ -89,7 +89,7 @@ def plotObject(self):
     # And draw the figure!    
     self.canvas.draw()
 
-def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
+def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     gs = gridspec.GridSpecFromSubplotSpec(2,2, 
               subplot_spec = gs_main[pos],
               width_ratios = [7,1], 
@@ -305,7 +305,8 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
                         main_y_pos, prim_y_pos, slit_angle, 
                         pscale_ratio=pscale_mosfire/pscale_3dhst, 
                         x0=x0, y0=y0+y0_off, 
-                        rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y)
+                        rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y,
+                        band=band)
         ###################################################################
         
         ax3.set_xlim(xlim)
@@ -348,7 +349,8 @@ def plotBand(self, gs_main, pos=0, band='H', cutoff=3.):
     return None
     
 def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos, 
-        slit_angle, pscale_ratio=1., x0=0., y0=0., rect_pad_x=None, rect_pad_y=None):
+        slit_angle, pscale_ratio=1., x0=0., y0=0., rect_pad_x=None, rect_pad_y=None,
+        band='K'):
     
     ## Define the "near the slit" polygon, to determine if we should plot.
     if (rect_pad_x is not None) and (rect_pad_y is not None):
@@ -383,19 +385,43 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
     x_prim_HST, y_prim_HST = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0) 
     
     if len(wh_in_stamp) > 0:
+        ser_cols = []
+        ser_ids = []
+        slit_ys = []
         color_ind = 0
         for ind in wh_in_stamp:
-            color_ind = plot_detection(ax3, ax2d, tdhst_cat, w, 
+            color_ind, ser_ids, ser_cols, slit_ys = plot_detection(ax3, ax2d, tdhst_cat, w, 
                 main_y_pos, prim_y_pos, y_prim_HST, 
                 slit_angle, pscale_ratio, x0, y0, 
                 ind, corners=corners, 
-                colors=colors, color_ind=color_ind)
+                colors=colors, color_ind=color_ind, 
+                ser_ids=ser_ids, ser_cols=ser_cols, slit_ys=slit_ys)
+        
+        
+        # Sort on slit_ys:
+        inds_slit_sort = np.argsort(slit_ys)[::-1]
+        ser_ids = np.array(ser_ids)
+        ser_cols = np.array(ser_cols)
+        ser_ids_sort = list(ser_ids[inds_slit_sort])
+        ser_cols_sort = list(ser_cols[inds_slit_sort])
+        
+        if self.serendip_ids is not None:
+            ser_all = self.serendip_ids
+            col_all = self.serendip_colors
+        else:
+            ser_all = []
+            col_all = []
+        ser_all.append([band, ser_ids_sort])
+        col_all.append([band, ser_cols_sort])
+        self.serendip_ids = ser_all
+        self.serendip_colors = col_all
     
     return None
     
 def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos, 
             y_prim_HST, slit_angle, pscale_ratio, 
-            x0, y0, ind, corners=None, colors=['cyan'], color_ind=0):
+            x0, y0, ind, corners=None, colors=['cyan'], color_ind=0,
+            ser_ids=None, ser_cols=None, slit_ys=None):
         
     px, py = w.wcs_world2pix(tdhst_cat['ra'][ind], tdhst_cat['dec'][ind], 1)
     
@@ -410,6 +436,9 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
         plot_ind = True
         
     if plot_ind:
+        ser_cols.append(colors[color_ind])
+        ser_ids.append(str(np.int64(tdhst_cat['id'][ind])))
+        
         # Plot a circle, ID for objects within region:
         circle = plt.Circle((px, py), 10, color=colors[color_ind], fill=False)
         ax.add_artist(circle)
@@ -429,11 +458,13 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
 
         slit_x, slit_y = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0)
         
+        slit_ys.append(slit_y)
+        
         # Plot text relative to slit positions:
         text_x, text_y = rot_corner_coords([[slit_x+xoff, slit_y+yoff]], 
                     slit_angle*d2r, x0=x0, y0=y0)
         ax.text(text_x, text_y, str(np.int64(tdhst_cat['id'][ind])), 
-                color=colors[color_ind], fontsize=7., rotation=ang, 
+                color=colors[color_ind], fontsize=8., rotation=ang, 
                 clip_on=True, fontweight='bold')
                 
         # Convert to slit pixels
@@ -454,7 +485,7 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
         if color_ind == len(colors):
             color_ind = 0
         
-    return color_ind
+    return color_ind, ser_ids, ser_cols, slit_ys
 
     
 def rot_coord_angle(arr, th, x0=0., y0=0.):
@@ -805,5 +836,5 @@ def make_format_ax2(ax, hdr, start_ind):
         lamdelt = hdr['cdelt1']
         lam0 = hdr['crval1'] - ((hdr['crpix1']-1)*hdr['cdelt1']) + (start_ind)*hdr['cdelt1']
         wave = (lam0 + lamdelt*x)/1.e4
-        return 'wave=%1.5f [um]    x=%1.5f    y=%1.5f' % (wave, x,  y)
+        return 'wave=%1.5f [um]    x=%1.5f   x_orig=%1.5f   y=%1.5f' % (wave, x, x+start_ind, y)
     return format_coord

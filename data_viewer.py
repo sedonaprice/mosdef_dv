@@ -72,6 +72,9 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         self.h_mag = None
         self.query_good = 0
         
+        self.serendip_ids = None
+        self.serendip_colors = None
+        
         ##--------------------##
         ##   Create things:   ##
         #self.create_menu()
@@ -269,13 +272,18 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
         
         #####################################
+        # Serendip IDs:
+        self.vbox_ser, self.serendip_info = self.make_serendip_list(initlist=self.serendip_ids, 
+                                        initcols=self.serendip_colors)
+        
+        
+        #####################################
         # Legend
         
         hline2 = self.make_hline()
     
         leg_lbl = QLabel(self)
         leg_lbl.setText('Legend:')
-        #leg_lbl.setMargin(0)
         h_leg = self.make_hbox_widget([leg_lbl], stretch=1)
         
         h_red = self.make_line_leg('H&alpha;', 'red')
@@ -286,11 +294,12 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         h_yel = self.make_line_leg('[OIII]', 'yellow',line_lbl_wid = 30)
         h_gre = self.make_line_leg('[OII]', 'green')
         
-        vbox_ll = self.make_vbox_layout([h_red, h_ora, h_mag])
-        vbox_rl = self.make_vbox_layout([h_tea, h_yel, h_gre])
-        hbox_l = self.make_hbox_layout([vbox_ll, vbox_rl],stretch=2)
+        hbox_col_t = self.make_hbox_layout([h_red, h_ora, h_mag],stretch=3)
+        hbox_col_b = self.make_hbox_layout([h_tea, h_gre, h_yel],stretch=3)
+        vbox_l = self.make_vbox_layout([hbox_col_t, hbox_col_b],stretch=2)
         
-        vbox_leg = self.make_vbox_layout([hline2, h_leg, hbox_l]) 
+        vbox_leg = self.make_vbox_layout([hline2, h_leg, vbox_l]) 
+        #vbox_leg = self.make_vbox_layout([hline2, vbox_l]) 
         
         #####################################
         # Extraction comments
@@ -316,9 +325,9 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         hline_z_input = self.make_hline()
         
         vbox_r_layout = self.make_vbox_layout([vbox_input, hline_z_input, hbox5, 
-                                vbox_z_h, vbox_leg, 
+                                vbox_z_h, self.vbox_ser, vbox_leg, 
                                 vbox_mask, self.vbox_com, 
-                                hline3, hbox8], stretch=7)
+                                hline3, hbox8], stretch=8)
                                 
         # Scrollable?
         self.scrollArea = QScrollArea(self)
@@ -397,8 +406,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
     def on_mask_id_query(self):
         ## Actually do the query here, 
-        #       whether initiated by a search or one of the 
-        #       dropdown menu options
+        #       whether initiated by a search 
         
         print 'querying mask, id:', self.maskname, self.obj_id
         
@@ -437,6 +445,11 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
         # Redraw
         self.on_draw()
+        
+            
+        # Update serendips:
+        self.serendip_info.setText(self.update_serendip_list(initlist=self.serendip_ids, 
+                        initcols=self.serendip_cols))
         
     
     def on_mask_prim_aper_query(self):
@@ -480,7 +493,10 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
 
         # Redraw
         self.on_draw()
-        
+         
+        # Update serendips:
+        self.serendip_info.setText(self.update_serendip_list(initlist=self.serendip_ids, 
+                        initcols=self.serendip_colors))
         
     # Method for dealing with changes to redshift on plot.
     def on_z_update(self):

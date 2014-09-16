@@ -153,5 +153,81 @@ class DV_Layout(object):
                 return ''
         else:
             return ''
+            
+    def make_serendip_list(self, initlist=None, initcols=None):
+        hline_serendip = self.make_hline()
+        
+        lbl = QLabel("Serendips:")
+        lbl.setTextFormat(Qt.RichText)
+        
+        text = QLabel()
+        text.setTextFormat(Qt.RichText)
+        text.setWordWrap(True)
+        
+        str_long = self.update_serendip_list(initlist=initlist, initcols=initcols)
+        text.setText(str_long)
+        
+        hbox_ser = self.make_hbox_widget([text], stretch=1)
+        h_lbl = self.make_hbox_widget([lbl], stretch=1)
+        vbox_ser = self.make_vbox_layout([hline_serendip, h_lbl, hbox_ser])
+        
+        return vbox_ser, text
+        
+    def make_serendip_markup(self, text=None, color=None):
+        #<span style="color:#aa0000;">TextLabel</span>
+        if (color == 'yellow') or (color == 'cyan'):
+            markup = '<span style="color:'+color
+            markup = markup+'; background-color:DimGray">'+text+'</span>'
+        else:
+            markup = '<span style="color:'+color+'">'+text+'</span>'
+        #markup = '<color='+color+'>'+text+'</color>'
+        return markup
+        
+    def update_serendip_list(self, initlist=None, initcols=None):
+        bands = ['K', 'H', 'J', 'Y']
+        
+        if initlist is not None:
+            serendip_text = []      
+            
+            obj_list = []
+            for band in bands:
+                j = -99
+                for jj in xrange(len(initlist)):
+                    if initlist[jj][0] == band:
+                        j = jj
+                if j >= 0:
+                    text_tmp = ''
+                    #text_tmp = band+': '
                 
+                    # Rich text formatting:
+                    for i in xrange(len(initlist[j][1])):
+                        if initlist[j][1][i] not in obj_list:
+                            obj_list.append(initlist[j][1][i])
+                            
+                            markup_str = self.make_serendip_markup(text=initlist[j][1][i], 
+                                                            color=initcols[j][1][i])
+                            text_tmp = text_tmp+markup_str
+                    
+                            if i < len(initlist[j][1])-1:
+                                text_tmp = text_tmp+', '
+                    
+                    if text_tmp == '':
+                        pass
+                    else:
+                        serendip_text.append(text_tmp)
+            
+                
+            if len(serendip_text) > 0:
+                # Convert this to one string, with carriage returns between lines.
+                str_long = ''
+                for com in serendip_text:
+                    str_long = str_long+com+'<p>'
+
+                return str_long
+            else:
+                return ''
+        else:
+            return ''
+
+        
         

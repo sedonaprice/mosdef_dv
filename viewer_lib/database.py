@@ -104,8 +104,8 @@ def cat_struct():
     # Find out what data you have: use 1D spectra directory
     basedir_1d = read_path('MOSDEF_DV_1D')
     basedir_2d = read_path('MOSDEF_DV_2D')
-    #files = os.listdir(basedir_1d)
-    files = os.listdir(basedir_2d)
+    files = os.listdir(basedir_1d)
+    files_2d = os.listdir(basedir_2d)
     
     # Returns all files:  including aperture number, bands, masknames, etc.
     
@@ -146,6 +146,45 @@ def cat_struct():
                                 index=[0])
             all_df = all_df.append(dfNew, ignore_index=True)
             
+        else:
+            pass
+
+    for f in files_2d:
+        splt = re.split(r'\.', f.strip())
+        try:
+            if splt[-3] == extra_1d:
+                norm_len = 6
+            else:
+                norm_len = 5
+        except:
+            # Only happens for random files.
+            norm_len = 5
+        if len(splt) == norm_len:
+            # Format: mask.band.primID.2d.fits
+            mask, band, prim_id = splt[0:3]
+            aper_no = 1
+            dfNew = pd.DataFrame({'maskname': mask, 
+                                'band': band,
+                                'primID': prim_id,
+                                'aper_no':aper_no},
+                                index=[0])
+            all_df = all_df.append(dfNew, ignore_index=True)
+            
+        elif len(splt) == norm_len+1:
+            # Format: mask.band.primID.aper_no.2d.fits
+            mask, band, prim_id, aper_no = splt[0:4]
+            
+            # If it's a star: no serendip objects, aper_no = 1
+            if prim_id[0] == 'S':
+                aper_no = 1
+            
+            dfNew = pd.DataFrame({'maskname': mask, 
+                                'band': band,
+                                'primID': prim_id,
+                                'aper_no':aper_no},
+                                index=[0])
+            all_df = all_df.append(dfNew, ignore_index=True)
+	    
         else:
             pass
 
