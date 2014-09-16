@@ -55,6 +55,10 @@ def plotObject(self):
     # Clear the existing figure.
     self.fig.clf()
     
+    # Reset the current info about serendips:
+    self.serendip_ids = None
+    self.serendip_colors = None
+    
     # Plot bands
     bands = ['K', 'H', 'J', 'Y']
     cutoffs = [2., 3., 3., 3.]

@@ -185,31 +185,60 @@ class DV_Layout(object):
         
     def update_serendip_list(self, initlist=None, initcols=None):
         bands = ['K', 'H', 'J', 'Y']
-        
+        vals_num = []
         if initlist is not None:
             serendip_text = []      
-            
             obj_list = []
+            
+            # Write out all object labels if the number of serendips isn't 
+            #       the same for every band.
+            #vals_test = []
+
+            
+            for jj in xrange(len(initlist)):
+                #vals_test.append(initlist[jj][1]))
+                vals_num.append(len(initlist[jj][1]))
+            if min(vals_num) == max(vals_num):
+                # If there are the same number of obj in every label:
+                flag = 0
+            else:
+                # If there's a change of nubmer of obj between bands:
+                flag = 1
+            # Check more robustly for the case where there might be same number of obj, 
+            #       but one obj in A but another obj in B?
+                
             for band in bands:
                 j = -99
                 for jj in xrange(len(initlist)):
                     if initlist[jj][0] == band:
                         j = jj
                 if j >= 0:
-                    text_tmp = ''
-                    #text_tmp = band+': '
+                    if flag == 0:
+                        text_tmp = ''
+                    else:
+                        text_tmp = band+': '
                 
                     # Rich text formatting:
                     for i in xrange(len(initlist[j][1])):
-                        if initlist[j][1][i] not in obj_list:
-                            obj_list.append(initlist[j][1][i])
+                        if flag == 0:
+                            if initlist[j][1][i] not in obj_list:
+                                obj_list.append(initlist[j][1][i])
                             
-                            markup_str = self.make_serendip_markup(text=initlist[j][1][i], 
-                                                            color=initcols[j][1][i])
-                            text_tmp = text_tmp+markup_str
+                                markup_str = self.make_serendip_markup(text=initlist[j][1][i], 
+                                                                color=initcols[j][1][i])
+                                text_tmp = text_tmp+markup_str
                     
-                            if i < len(initlist[j][1])-1:
-                                text_tmp = text_tmp+', '
+                                if i < len(initlist[j][1])-1:
+                                    text_tmp = text_tmp+', '
+                        else:
+                                obj_list.append(initlist[j][1][i])
+
+                                markup_str = self.make_serendip_markup(text=initlist[j][1][i], 
+                                                                color=initcols[j][1][i])
+                                text_tmp = text_tmp+markup_str
+
+                                if i < len(initlist[j][1])-1:
+                                    text_tmp = text_tmp+', '
                     
                     if text_tmp == '':
                         pass
