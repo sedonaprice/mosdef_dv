@@ -320,7 +320,7 @@ def fits_to_df(fitsrec):
     return df
     
     
-def read_bmep_redshift_slim(primID, aper_no):
+def read_bmep_redshift_slim(mask, primID, aper_no):
     path = read_path('MOSDEF_DV_BMEP_Z')
     filename = path+'/00_redshift_catalog_slim_bmep.txt'
     
@@ -334,9 +334,11 @@ def read_bmep_redshift_slim(primID, aper_no):
         
         try:
         # Has a match
+            wh_mask = np.where(redshift_info['maskname'] == mask)[0]
             wh_prim = np.where(redshift_info['primID'] == np.int64(primID))[0]
             wh_aper = np.where(redshift_info['aper_no'] == np.int64(aper_no))[0]
-            wh = np.intersect1d(wh_prim, wh_aper)[0]
+            wh_1 = np.intersect1d(wh_prim, wh_mask)[0]
+            wh = np.intersect1d(wh_1, wh_aper)[0]
     
             return redshift_info['z1'][wh]
         except:

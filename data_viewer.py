@@ -449,7 +449,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
             
         # Update serendips:
         self.serendip_info.setText(self.update_serendip_list(initlist=self.serendip_ids, 
-                        initcols=self.serendip_cols))
+                        initcols=self.serendip_colors))
         
     
     def on_mask_prim_aper_query(self):
@@ -594,7 +594,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     ##########################################################################
     # Read-in data methods:
     def set_z_values(self, spec2d_hdr, aper_no=1):
-        self.z_mosfire_1d = read_bmep_redshift_slim(self.primID, self.aper_no)
+        self.z_mosfire_1d = read_bmep_redshift_slim(self.maskname, self.primID, self.aper_no)
         
         if aper_no == 1:
             # Primary object
