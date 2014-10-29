@@ -360,11 +360,12 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
     if (rect_pad_x is not None) and (rect_pad_y is not None):
         rect = np.array([rect_pad_x, rect_pad_y])
         corners = rect.T
-        w_x0, w_y0 = w.wcs_pix2world(min(rect_pad_x), min(rect_pad_y), 1)
-        w_x1, w_y1 = w.wcs_pix2world(max(rect_pad_x), max(rect_pad_y), 1)
+        # convert to FITS origin convention
+        w_x0, w_y0 = w.wcs_pix2world(min(rect_pad_x)+1, min(rect_pad_y)+1, 1)
+        w_x1, w_y1 = w.wcs_pix2world(max(rect_pad_x)+1, max(rect_pad_y)+1, 1)
     else:
-        w_x0, w_y0 = w.wcs_pix2world(0, 0, 1)
-        w_x1, w_y1 = w.wcs_pix2world(hdr['naxis1'], hdr['naxis2'], 1)
+        w_x0, w_y0 = w.wcs_pix2world(1, 1, 1)
+        w_x1, w_y1 = w.wcs_pix2world(hdr['naxis1']+1, hdr['naxis2']+1, 1)
         corners = None
                 
     w_x = np.array([min(w_x0, w_x1), max(w_x0, w_x1)])
@@ -386,6 +387,9 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
     ind_prim = np.where(tdhst_cat['id'] == np.float64(self.primID))[0][0]
     d2r = np.pi/180. 
     px, py = w.wcs_world2pix(tdhst_cat['ra'][ind_prim], tdhst_cat['dec'][ind_prim], 1)
+    # Convert to np convention
+    px -= 1.
+    px -= 1.
     x_prim_HST, y_prim_HST = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0) 
     
     if len(wh_in_stamp) > 0:
@@ -428,6 +432,9 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
             ser_ids=None, ser_cols=None, slit_ys=None):
         
     px, py = w.wcs_world2pix(tdhst_cat['ra'][ind], tdhst_cat['dec'][ind], 1)
+    # Convert to np convention
+    px -= 1.
+    px -= 1.
     
     if corners is not None:
         # Check if it's in region:
