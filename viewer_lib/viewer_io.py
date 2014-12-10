@@ -229,7 +229,7 @@ def read_0d_cat(vers='2.1'):
         raise Exception("MOSDEF catalogs not made with v4.0 yet!")
 
     path = read_path('MOSDEF_DV_MEAS')
-    filename = path+'/mosdef_0d.fits'
+    filename = path+'/mosdef_0d_latest.fits'
     
     hdu = fits.open(filename)
     data = hdu[1].data
