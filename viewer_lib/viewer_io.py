@@ -77,11 +77,12 @@ def read_3dhst_cat(field, vers='2.1'):
             field_name = field
 
         filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
+        
 
         exist = os.path.isfile(filename)
         if exist:
             hdulist = fits.open(filename)
-            data = hdulist[1].data
+            data = hdulist[1].data.copy()
     
             hdulist.close()
 
@@ -92,7 +93,7 @@ def read_3dhst_cat(field, vers='2.1'):
             exist = os.path.isfile(filename)
             if exist:
                 hdulist = fits.open(filename)
-                data = hdulist[1].data
+                data = hdulist[1].data.copy()
 
                 hdulist.close()
 
@@ -138,10 +139,10 @@ def read_spec1d(filename, optimal=True):
     exist = os.path.isfile(basedir+'/'+filename)
     if exist:
         hdulist = fits.open(basedir+'/'+filename)
-        data = hdulist[ext_start].data
-        data_err = hdulist[ext_start+1].data
-        light_profile = hdulist[5].data
-        hdr = hdulist[0].header
+        data = hdulist[ext_start].data.copy()
+        data_err = hdulist[ext_start+1].data.copy()
+        light_profile = hdulist[5].data.copy()
+        hdr = hdulist[0].header.copy()
         hdulist.close()
     else:
         # Try the basic data name:
@@ -152,10 +153,10 @@ def read_spec1d(filename, optimal=True):
         exist = os.path.isfile(basedir+'/'+filename)
         if exist:
             hdulist = fits.open(basedir+'/'+filename)
-            data = hdulist[ext_start].data
-            data_err = hdulist[ext_start+1].data
-            light_profile = hdulist[5].data
-            hdr = hdulist[0].header
+            data = hdulist[ext_start].data.copy()
+            data_err = hdulist[ext_start+1].data.copy()
+            light_profile = hdulist[5].data.copy()
+            hdr = hdulist[0].header.copy()
             hdulist.close()
         else:
             data = None
@@ -177,8 +178,8 @@ def read_spec2d(filename):
     #print exist
     if exist:
         hdulist = fits.open(basedir+'/'+filename)
-        data = hdulist[1].data
-        hdr = hdulist[1].header
+        data = hdulist[1].data.copy()
+        hdr = hdulist[1].header.copy()
         
         hdulist.close()
     else:
@@ -197,8 +198,8 @@ def read_pstamp(field, ID):
     
     try:
         hdulist = fits.open(filename)
-        pstamp = hdulist[0].data
-        hdr = hdulist[0].header
+        pstamp = hdulist[0].data.copy()
+        hdr = hdulist[0].header.copy()
         hdulist.close()
 
         return pstamp, hdr
@@ -210,8 +211,8 @@ def read_pstamp(field, ID):
 
         try:
             hdulist = fits.open(filename)
-            pstamp = hdulist[0].data
-            hdr = hdulist[0].header
+            pstamp = hdulist[0].data.copy()
+            hdr = hdulist[0].header.copy()
             hdulist.close()
 
             return pstamp, hdr
@@ -232,7 +233,7 @@ def read_0d_cat(vers='2.1'):
     filename = path+'/mosdef_0d_latest.fits'
     
     hdu = fits.open(filename)
-    data = hdu[1].data
+    data = hdu[1].data.copy()
     data_df = fits_to_df(data)
     hdu.close()
     

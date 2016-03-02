@@ -293,7 +293,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
         if tdhst_cat is not None:
             # Define region with 1" padding around slit area, for plotting object IDs.
             rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
-                    slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=1., pscale_3dhst=pscale_3dhst)
+                    slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=2., pscale_3dhst=pscale_3dhst)
         
             # Get info for primary object, if the 1D spectra exist:
             try:
@@ -304,9 +304,12 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
                 main_y_pos = -1
         
             w = WCS(pstamp_hdr)
+            
+            
+            main_id = self.obj_id
         
             plot_detections_in_stamp(self, ax3, ax2, tdhst_cat, w, 
-                        main_y_pos, prim_y_pos, slit_angle, 
+                         main_id, main_y_pos, prim_y_pos, slit_angle, 
                         pscale_ratio=pscale_mosfire/pscale_3dhst, 
                         x0=x0, y0=y0+y0_off, 
                         rect_pad_x=rect_padded_x, rect_pad_y=rect_padded_y,
@@ -352,7 +355,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     
     return None
     
-def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos, 
+def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w,  main_id, main_y_pos, prim_y_pos, 
         slit_angle, pscale_ratio=1., x0=0., y0=0., rect_pad_x=None, rect_pad_y=None,
         band='K'):
     
@@ -381,6 +384,7 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
     
     wh_in_stamp = np.intersect1d(wh_ra, wh_dec)
     
+    
     colors = ['cyan', 'orange', 'magenta', 'yellow', 'red', 'MediumSlateBlue']
     
     # Find the y_pos in un-rot coord of the primary object:
@@ -392,6 +396,7 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
     px -= 1.
     x_prim_HST, y_prim_HST = rot_corner_coords([[px, py]], -1.*slit_angle*d2r, x0=x0, y0=y0) 
     
+    
     if len(wh_in_stamp) > 0:
         ser_cols = []
         ser_ids = []
@@ -399,7 +404,7 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
         color_ind = 0
         for ind in wh_in_stamp:
             color_ind, ser_ids, ser_cols, slit_ys = plot_detection(ax3, ax2d, tdhst_cat, w, 
-                main_y_pos, prim_y_pos, y_prim_HST, 
+                 main_id, main_y_pos, prim_y_pos, y_prim_HST, 
                 slit_angle, pscale_ratio, x0, y0, 
                 ind, corners=corners, 
                 colors=colors, color_ind=color_ind, 
@@ -426,7 +431,7 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w, main_y_pos, prim_y_p
     
     return None
     
-def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos, 
+def plot_detection(ax, ax2d, tdhst_cat, w, main_id, main_y_pos, prim_y_pos, 
             y_prim_HST, slit_angle, pscale_ratio, 
             x0, y0, ind, corners=None, colors=['cyan'], color_ind=0,
             ser_ids=None, ser_cols=None, slit_ys=None):
@@ -484,7 +489,8 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_y_pos, prim_y_pos,
         y_prim_HST = y_prim_HST/pscale_ratio
         y_pos = prim_y_pos - (y_prim_HST - slit_y)
         
-        if np.abs(y_pos - main_y_pos) <= 0.5:
+        #if np.abs(y_pos - main_y_pos) <= 0.5:
+        if tdhst_cat['id'][ind] == main_id:
             length = 0.08
         else:
             length = 0.05
@@ -756,6 +762,9 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         # Skip very edge of spectra:
         spec1d_y_trim = spec1d_y_concat[20:len(spec1d_y_concat)-20]
         spec1d_err_trim = spec1d_y_err_concat[20:len(spec1d_y_err_concat)-20]
+        wh_finite = np.where(np.isfinite(spec1d_err_trim))[0]
+        spec1d_y_trim = spec1d_y_trim[wh_finite]
+        spec1d_err_trim = spec1d_err_trim[wh_finite]
         wh_no_sky, wh_sky = wh_skylines(spec1d_err_trim, cutoff=cutoff, full=True)  
         spec1d_y_nosky = spec1d_y_trim[wh_no_sky]
         spec1d_err_nosky = spec1d_err_trim[wh_no_sky]
@@ -763,6 +772,7 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         finite = np.isfinite(spec1d_y_nosky)
         y_finite = spec1d_y_nosky[finite].copy()
         y_err_finite = spec1d_err_nosky[finite].copy()
+        
 
         # Find median, std of range_spec:
         median = np.median(y_finite)
