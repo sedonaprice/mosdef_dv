@@ -49,6 +49,7 @@ On pepper, these are similar to:
 - MOSDEF BMEP redshift file location: /Users/mosdef/Data/Reduced/v0.2/1D
 - 3DHST catalog parent dir: /Volumes/Surveys/3DHST
 
+---
 
 ##### Shortcuts:
 - Cmd/Ctrl+Left: Previous object in mask
