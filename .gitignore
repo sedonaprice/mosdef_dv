@@ -3,3 +3,7 @@ mosdef_dv_data
 *.png
 traits_botched
 *.pyc
+conflicts*
+*.app
+*.app.tar.gz
+mosdef_logo_firey.pdf

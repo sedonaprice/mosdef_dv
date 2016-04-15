@@ -30,13 +30,25 @@ On pepper, this should be
 
 
 ######Launch program:
-Navigate to directory where you would like to create the DV dir containing the DB. 
+Navigate to directory where you would like to create the DV dir, "mosdef_dv_data," which will contain the DB and path information.  
 __You must always run MOSDEF DV from this directory to keep using the current DB and 
 previously set paths.__
 
 Within this directory, run:
 
 	mosdef_dv
+
+######Path setup:
+For the first run, or if the paths are updated, you will need to set up the dataviewer paths ("Set paths" button on lower right) to point to correct directories.
+
+On pepper, these are similar to:
+- MOSDEF 1D spectra: /Users/mosdef/Data/Reduced/v0.2/1D
+- MOSDEF 2D spectra: /Users/mosdef/Data/Reduced/v0.2/2D
+- MOSDEF measurements: /Users/mosdef/Measurements
+- Postage stamps: /Users/mosdef/Mask_Design/postage_stamps/30_by_30
+- MOSDEF BMEP redshift file location: /Users/mosdef/Data/Reduced/v0.2/1D
+- 3DHST catalog parent dir: /Volumes/Surveys/3DHST
+
 
 ##### Shortcuts:
 - Cmd/Ctrl+Left: Previous object in mask
