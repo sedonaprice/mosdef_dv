@@ -393,7 +393,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         items = []  
         if query is not None:
                 for q in query:
-                  primaper_str = self.toPrimAper(str(q['primaryID']), str(q['aperture_no']))
+                  primaper_str = self.toPrimAper(str(q['primaryID']), 
+                            str(q['aperture_no']), obj_type=q['obj_type'])
                   items.append(str(primaper_str))
         
         self.match_list = items
@@ -411,8 +412,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         try:
              self.obj_id = np.int64(str(self.objIDBox.text()))
         except:
-             # Non-numerical input
-             self.obj_id = str(self.objIDBox.text())
+             # Non-numerical input; star?
+             self.obj_id = np.int64(str(self.objIDBox.text())[1:])
              
         self.on_mask_id_query()
            
@@ -422,6 +423,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         #       whether initiated by a search 
         
         print 'querying mask, id:', self.maskname, self.obj_id
+        
         
         # Run the query
         query_str = "maskname = '%s' AND objID = %s" % (self.maskname, self.obj_id)
@@ -553,21 +555,32 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         return combo
         
     # Helper functions:
-    def toPrimAper(self, primID, aper_no):
+    def toPrimAper(self, primID, aper_no, obj_type='G'):
         if aper_no == '1':
             primaper_str = str(primID)
         else:
             primaper_str = str(primID)+'.'+str(aper_no)
+        
+        if obj_type == 'S':
+            primaper_str = 'S'+primaper_str
         
         return primaper_str
         
     def fromPrimAper(self, primaper_str):
         splt = re.split(r'\.', str(primaper_str).strip())
         if len(splt) == 1:
-            self.primID = splt[0]
+            if splt[0][0] == 'S':
+                splt_tmp = splt[0][1:]
+            else:
+                splt_tmp = splt[0]
+            self.primID = splt_tmp
             self.aper_no = 1
         elif len(splt) == 2:
-            self.primID = splt[0]
+            if splt[0][0] == 'S':
+                splt_tmp = splt[0][1:]
+            else:
+                splt_tmp = splt[0]
+            self.primID = splt_tmp
             self.aper_no = splt[1]
         else:
             # Not proper format: reset values
@@ -636,31 +649,36 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
             # Get match:
             parent_cat = read_parent_cat(vers=tdhst_vers, field=self.field)
             
-            wh_match = np.where(parent_cat['ID'] == np.int64(self.primID))[0][0]
-            print "wh_match=", wh_match
-            print "parent_cat['Z_SPEC'][wh_match]=", parent_cat['Z_SPEC'][wh_match]
-            print "parent_cat['Z_GRISM'][wh_match]=", parent_cat['Z_GRISM'][wh_match]
-            
-            # Primary object
             try:
-                zspec = parent_cat['Z_SPEC'][wh_match]
-                if ((zspec == -1.) & (parent_cat['EXT_ZSPEC'][wh_match] > 0.)):
-                    zspec = parent_cat['EXT_ZSPEC'][wh_match]
-                self.z_spec = zspec
-                #self.z_spec = spec2d_hdr['z_spec'.upper()]
+                wh_match = np.where(parent_cat['ID'] == np.int64(self.primID))[0][0]
+                # print "wh_match=", wh_match
+                # print "parent_cat['Z_SPEC'][wh_match]=", parent_cat['Z_SPEC'][wh_match]
+                # print "parent_cat['Z_GRISM'][wh_match]=", parent_cat['Z_GRISM'][wh_match]
+            
+                # Primary object
+                try:
+                    zspec = parent_cat['Z_SPEC'][wh_match]
+                    if ((zspec == -1.) & (parent_cat['EXT_ZSPEC'][wh_match] > 0.)):
+                        zspec = parent_cat['EXT_ZSPEC'][wh_match]
+                    self.z_spec = zspec
+                    #self.z_spec = spec2d_hdr['z_spec'.upper()]
+                except:
+                    self.z_spec = -1.
+            
+                try:
+                    self.z_gris = parent_cat['Z_GRISM'][wh_match]
+                    #self.z_gris = spec2d_hdr['z_grism'.upper()]
+                except:
+                    self.z_gris = -1.
+            
+                try:
+                    self.z_phot = parent_cat['Z_PHOT'][wh_match]
+                    #self.z_phot = spec2d_hdr['z_phot'.upper()]
+                except:
+                    self.z_phot = -1.
             except:
                 self.z_spec = -1.
-            
-            try:
-                self.z_gris = parent_cat['Z_GRISM'][wh_match]
-                #self.z_gris = spec2d_hdr['z_grism'.upper()]
-            except:
                 self.z_gris = -1.
-            
-            try:
-                self.z_phot = parent_cat['Z_PHOT'][wh_match]
-                #self.z_phot = spec2d_hdr['z_phot'.upper()]
-            except:
                 self.z_phot = -1.
         else:
             # Non-primary object -- no 3D-HST redshift from headers

@@ -213,7 +213,7 @@ def cat_struct():
             'primaryID', 'aperture_no', \
             'primaryIDv2', 'primaryIDv4', \
             'field', \
-            'ra', 'dec']
+            'ra', 'dec', 'obj_type']
             
     # Add tdhst_vers in here???
             
@@ -240,12 +240,15 @@ def cat_struct():
         # Get primary id number in integer:
         try:
             prim_id_name = np.int64(obj_df.ix[i]['primID'])
+            obj_type = 'G'
         except:
             if obj_df.ix[i]['primID'][0] == 'S':
                 # Has 'S' at the beginning of obj name
                 prim_id_name = np.int64(obj_df.ix[i]['primID'][1:])
+                obj_type = 'S'
             else:
                 prim_id_name = np.int64(obj_df.ix[i]['primID'])[0]
+                obj_type = '?'
                 
                 
         ###########################################
@@ -363,7 +366,7 @@ def cat_struct():
                 np.int64(obj_df.ix[i]['aper_no']), \
                 prim_idv2, prim_idv4, \
                 field, \
-                ra, dec]
+                ra, dec, obj_type]
         for i in xrange(len(filters)):
                 row.append(files_1d[i])
                 row.append(files_2d[i])
@@ -411,6 +414,7 @@ def write_cat_db():
                 primaryIDv2 INT, primaryIDv4 INT, 
                 field TEXT, 
                 ra FLOAT, dec FLOAT, 
+                obj_type TEXT, 
                 spec1d_file_k TEXT, spec2d_file_k TEXT, 
                 spec1d_file_h TEXT, spec2d_file_h TEXT,
                 spec1d_file_j TEXT, spec2d_file_j TEXT,
@@ -433,6 +437,7 @@ def write_cat_db():
                 r['primaryIDv2'], r['primaryIDv4'], \
                 r['field'], \
                 r['ra'], r['dec'], \
+                r['obj_type'], \
                 r['spec1d_file_k'].encode('ascii', 'ignore'), r['spec2d_file_k'].encode('ascii', 'ignore'), \
                 r['spec1d_file_h'].encode('ascii', 'ignore'), r['spec2d_file_h'].encode('ascii', 'ignore'), \
                 r['spec1d_file_j'].encode('ascii', 'ignore'), r['spec2d_file_j'].encode('ascii', 'ignore'), \
@@ -448,6 +453,7 @@ def write_cat_db():
                 "primaryIDv2, primaryIDv4, " +
                 "field, " + 
                 "ra, dec, " + 
+                "obj_type, "
                 "spec1d_file_k, spec2d_file_k, " + 
                 "spec1d_file_h, spec2d_file_h, " + 
                 "spec1d_file_j, spec2d_file_j, " +
@@ -517,6 +523,7 @@ def query_db(query_string):
                     'primaryIDv2', 'primaryIDv4', \
                     'field', \
                     'ra', 'dec', \
+                    'obj_type', \
                     'spec1d_file_k', 'spec2d_file_k', \
                     'spec1d_file_h', 'spec2d_file_h', \
                     'spec1d_file_j', 'spec2d_file_j', \

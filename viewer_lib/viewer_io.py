@@ -373,10 +373,15 @@ def read_bmep_redshift_slim(mask, primID, aper_no):
         
         wh_1 = np.intersect1d(wh_prim, wh_mask)
         #print "wh_1=", wh_1
-        wh = np.intersect1d(wh_1, wh_aper)[0]
-        #print "wh=", wh
+        wh = np.intersect1d(wh_1, wh_aper)
+        
+        if len(wh)>0:
+            wh = wh[0]
+            #print "wh=", wh
     
-        return redshift_info['z1'][wh]
+            return redshift_info['z1'][wh]
+        else:
+            return -1.
         
         
         # except:
