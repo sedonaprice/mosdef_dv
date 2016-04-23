@@ -28,6 +28,12 @@ class DB_Options_Dialog(object):
         self.dir_meas = QLineEdit(self) # MOSDEF_DV_MEAS
         hbox3 = self.make_hbox_widget([lbl_meas, self.dir_meas])
         
+        lbl_parent = QLabel(self)
+        lbl_parent.setText('Parent cat dir:')
+        self.dir_parent = QLineEdit(self) # MOSDEF_DV_PARENT
+        hbox35 = self.make_hbox_widget([lbl_parent, self.dir_parent])
+        
+        
         lbl_pstamp = QLabel(self)
         lbl_pstamp.setText('Pstamp dir:')
         self.dir_pstamp = QLineEdit(self) # MOSDEF_DV_PSTAMP
@@ -49,6 +55,7 @@ class DB_Options_Dialog(object):
         lbl_1d.setMinimumWidth(lbl_wid)
         lbl_2d.setMinimumWidth(lbl_wid)
         lbl_meas.setMinimumWidth(lbl_wid)
+        lbl_parent.setMinimumWidth(lbl_wid)
         lbl_pstamp.setMinimumWidth(lbl_wid)
         lbl_bmep_z.setMinimumWidth(lbl_wid)
         lbl_tdhst_cat.setMinimumWidth(lbl_wid)
@@ -56,6 +63,7 @@ class DB_Options_Dialog(object):
         lbl_1d.setAlignment(Qt.AlignRight)
         lbl_2d.setAlignment(Qt.AlignRight)
         lbl_meas.setAlignment(Qt.AlignRight)
+        lbl_parent.setAlignment(Qt.AlignRight)
         lbl_pstamp.setAlignment(Qt.AlignRight)
         lbl_bmep_z.setAlignment(Qt.AlignRight)
         lbl_tdhst_cat.setAlignment(Qt.AlignRight)
@@ -65,6 +73,7 @@ class DB_Options_Dialog(object):
         self.dir_1d.setMinimumWidth(min_wid)
         self.dir_2d.setMinimumWidth(min_wid)
         self.dir_meas.setMinimumWidth(min_wid)
+        self.dir_parent.setMinimumWidth(min_wid)
         self.dir_pstamp.setMinimumWidth(min_wid)
         self.dir_bmep_z.setMinimumWidth(min_wid)
         self.dir_tdhst_cat.setMinimumWidth(min_wid)
@@ -72,10 +81,10 @@ class DB_Options_Dialog(object):
         # Set initial text values, if there is already a paths file.
         path_info = read_paths()
         labels = ['MOSDEF_DV_1D', 'MOSDEF_DV_2D', 
-                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP',
+                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PARENT', 'MOSDEF_DV_PSTAMP',
                 'MOSDEF_DV_BMEP_Z','TDHST_CAT']
         boxes = [self.dir_1d, self.dir_2d, 
-                self.dir_meas, self.dir_pstamp,
+                self.dir_meas, self.dir_parent, self.dir_pstamp,
                 self.dir_bmep_z, self.dir_tdhst_cat]
         if path_info is not None:
             for i in xrange(len(labels)):
@@ -89,6 +98,7 @@ class DB_Options_Dialog(object):
         self.layout.addLayout(hbox1)
         self.layout.addLayout(hbox2)
         self.layout.addLayout(hbox3)
+        self.layout.addLayout(hbox35)
         self.layout.addLayout(hbox4)
         self.layout.addLayout(hbox5)
         self.layout.addLayout(hbox6)
@@ -152,16 +162,18 @@ class ChangeDBinfo(QDialog, DB_Options_Dialog):
         MOSDEF_DV_1D = str(self.dir_1d.text())
         MOSDEF_DV_2D = str(self.dir_2d.text())
         MOSDEF_DV_MEAS = str(self.dir_meas.text())
+        MOSDEF_DV_PARENT = str(self.dir_parent.text())
         MOSDEF_DV_PSTAMP = str(self.dir_pstamp.text())
         MOSDEF_DV_BMEP_Z = str(self.dir_bmep_z.text())
         TDHST_CAT = str(self.dir_tdhst_cat.text())
         
         labels = ['MOSDEF_DV_1D', 'MOSDEF_DV_2D', 
-                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PSTAMP',
+                'MOSDEF_DV_MEAS', 'MOSDEF_DV_PARENT', 'MOSDEF_DV_PSTAMP',
                 'MOSDEF_DV_BMEP_Z', 'TDHST_CAT']
                 
         paths = [MOSDEF_DV_1D, MOSDEF_DV_2D, 
-                MOSDEF_DV_MEAS, MOSDEF_DV_PSTAMP,
+                MOSDEF_DV_MEAS, MOSDEF_DV_PARENT, 
+                MOSDEF_DV_PSTAMP,
                 MOSDEF_DV_BMEP_Z, TDHST_CAT]
                 
         for i,p in enumerate(paths):

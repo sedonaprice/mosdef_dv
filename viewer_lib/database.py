@@ -13,7 +13,7 @@ from numpy import array
 import pandas as pd
 import numpy as np
 import re
-from viewer_io import read_0d_cat, read_path
+from viewer_io import read_0d_cat, read_path, read_spec1d, read_parent_cat, get_tdhst_vers
 import numpy as np
 
 ############################################################
@@ -195,48 +195,50 @@ def cat_struct():
     
     filters = ['K','H','J','Y']
     
-    # Open MOSDEF 0d catalog to try to get objID for objects that are not primary
-    mosdef_0d_cat = read_0d_cat()
     
     cat = []
     ### Info that needs to be stored in DB
     keys = [ 'maskname', 'objID', \
             'primaryID', 'aperture_no', \
+            'primaryIDv2', 'primaryIDv4', \
             'field', \
             'ra', 'dec']
+            
+    # Add tdhst_vers in here???
+            
     for i in xrange(len(filters)):
         keys.append('spec1d_file_'+filters[i].lower())
         keys.append('spec2d_file_'+filters[i].lower())
         
     keys.append('hst_file')
+    
+    field_cur = 'none'
 
     for ii in xrange(len(obj_df)):
         i = obj_df.index[ii]
         
-        # Look for a match in 0D catalog:
+        # Open MOSDEF parent catalog to try to get objID for objects that are not primary
+        #mosdef_0d_cat = read_0d_cat()
+        # Get field:
+        field, z, mask = maskname_interp(obj_df.ix[i]['maskname'])
+        if field != field_cur:
+            mosdef_parent_cat = read_parent_cat(vers='4.1', field=field)
+            field_cur = field
+            
+        ###############################
+        # Get primary id number in integer:
         try:
-            wh_prim = np.where(mosdef_0d_cat['SLITOBJNAME'] == np.int64(obj_df.ix[i]['primID']))[0]
-            wh_aper = np.where(mosdef_0d_cat['APERTURE_NO'] == np.int64(obj_df.ix[i]['aper_no']))[0]
             prim_id_name = np.int64(obj_df.ix[i]['primID'])
-            try:
-                wh = np.intersect1d(wh_prim, wh_aper)[0]
-            except:
-                wh = None
-
         except:
             if obj_df.ix[i]['primID'][0] == 'S':
                 # Has 'S' at the beginning of obj name
                 prim_id_name = np.int64(obj_df.ix[i]['primID'][1:])
-                wh_prim = np.where(mosdef_0d_cat['SLITOBJNAME'] == np.int64(obj_df.ix[i]['primID'][1:]))[0]
-                wh_aper = np.where(mosdef_0d_cat['APERTURE_NO'] == np.int64(obj_df.ix[i]['aper_no']))[0]
-                try:
-                    wh = np.intersect1d(wh_prim, wh_aper)[0]
-                except:
-                    wh = None
             else:
                 prim_id_name = np.int64(obj_df.ix[i]['primID'])[0]
-                wh = None
-        
+                
+                
+        ###########################################
+        # Prepare filenames:
         file_1d_base = obj_df.ix[i]['maskname']
         file_2d_base = obj_df.ix[i]['maskname']
         if np.int(obj_df.ix[i]['aper_no']) == 1:
@@ -251,11 +253,11 @@ def cat_struct():
             file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+'.'+extra_1d+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
              
-            # Get identified objID if there is an entry in the master cat:
-            if wh is not None:
-                objID = mosdef_0d_cat['ID'][wh]
-            else:
-                objID = -99
+            # # Get identified objID if there is an entry in the master cat:
+            # if wh is not None:
+            #     objID = mosdef_0d_cat['ID'][wh]
+            # else:
+            objID = -99
         
         files_1d = []
         files_2d = []
@@ -266,21 +268,86 @@ def cat_struct():
             file2d = const_filename(file_2d_base, f, file_2d_end, basedir_2d,dim=2)
             files_2d.append(file2d)
         
+        ###############################
+        # Get tdhst_version from 2D header:
+        tdhst_vers = None
+        mm = 0
+        while tdhst_vers is None:
+            try:
+                data, data_err, light_profile, hdr = read_spec1d(files_1d[mm])
+                tdhst_vers = get_tdhst_vers(hdr)
+            except:
+                pass
+            if mm < len(files_1d)-1:
+                mm += i
+            else:
+                break
+            
+        
+        # Get match from parent cat for v2, v4 ids:
+        if tdhst_vers == '2.1':
+            try:
+                wh_prim = np.where(mosdef_parent_cat['ID_V21'] == prim_id_name)[0][0]
+                prim_idv2 = prim_id_name
+                prim_idv4 = mosdef_parent_cat['ID'].iloc[wh_prim]
+            except:
+                wh_prim = None
+                prim_idv2 = prim_id_name
+                prim_idv4 = -9999
+        else:
+            try:
+                wh_prim = np.where(mosdef_parent_cat['ID'] == prim_id_name)[0][0]
+                prim_idv4 = prim_id_name
+                prim_idv2 = mosdef_parent_cat['ID_V21'].iloc[wh_prim]
+            except:
+                wh_prim = None
+                prim_idv4 = prim_id_name
+                prim_idv2 = -9999
+            
+        # Chosen to read in v4.1 catalog, so ref # is v4
+        prim_id_ref = prim_idv4
+        
+        
+        # Look for a match in 0D catalog:
+        try:
+            wh_prim = np.where(mosdef_parent_cat['ID'] == prim_id_ref)[0][0]
+            if np.int64(obj_df.ix[i]['aper_no']) == 1:
+                wh = wh_prim
+            else:
+                wh = None
+                
+
+        except:
+            if obj_df.ix[i]['primID'][0] == 'S':
+                # Has 'S' at the beginning of obj name
+                try:
+                    wh_prim = np.where(mosdef_parent_cat['ID'] == prim_id_ref)[0][0]
+                    if np.int64(obj_df.ix[i]['aper_no']) == 1:
+                        wh = wh_prim
+                    else:
+                        wh = None
+                except:
+                    wh = None
+            else:
+                wh = None
+                
+        
         # Temp
         hst_file = '-----'
         
-        # Get field:
-        field, z, mask = maskname_interp(obj_df.ix[i]['maskname'])
+
+        
         
         # Set ra, dec
         if wh is not None:
-            ra, dec = mosdef_0d_cat['RA'][wh], mosdef_0d_cat['DEC'][wh]
+            ra, dec = mosdef_parent_cat['RA'].iloc[wh], mosdef_parent_cat['DEC'].iloc[wh]
         else:
             ra, dec = -99., -99.
         
         row = [obj_df.ix[i]['maskname'], objID, \
                 prim_id_name, \
                 np.int64(obj_df.ix[i]['aper_no']), \
+                prim_idv2, prim_idv4, \
                 field, \
                 ra, dec]
         for i in xrange(len(filters)):
@@ -327,6 +394,7 @@ def write_cat_db():
     sql_cmd = """CREATE TABLE IF NOT EXISTS %s 
                 (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 maskname TEXT, objID INT, primaryID INT, aperture_no INT, 
+                primaryIDv2 INT, primaryIDv4 INT, 
                 field TEXT, 
                 ra FLOAT, dec FLOAT, 
                 spec1d_file_k TEXT, spec2d_file_k TEXT, 
@@ -347,6 +415,7 @@ def write_cat_db():
         # Make sure none of the strings are encoded as unicode -- bad for sql
         list_dat = [ r['maskname'].encode('ascii', 'ignore'), \
                 r['objID'], r['primaryID'], r['aperture_no'], \
+                r['primaryIDv2'], r['primaryIDv4'], \
                 r['field'], \
                 r['ra'], r['dec'], \
                 r['spec1d_file_k'].encode('ascii', 'ignore'), r['spec2d_file_k'].encode('ascii', 'ignore'), \
@@ -360,13 +429,16 @@ def write_cat_db():
 
 
         sql_cmd = "INSERT INTO %s" % collname
-        sql_cmd = (sql_cmd +  "(maskname, objID, primaryID, aperture_no, field, " + 
+        sql_cmd = (sql_cmd +  "(maskname, objID, primaryID, aperture_no, " +
+                "primaryIDv2, primaryIDv4, " +
+                "field, " + 
                 "ra, dec, " + 
                 "spec1d_file_k, spec2d_file_k, " + 
                 "spec1d_file_h, spec2d_file_h, " + 
                 "spec1d_file_j, spec2d_file_j, " +
                 "spec1d_file_y, spec2d_file_y, " + 
                 "hst_file) VALUES " + strdat)
+                
                 
         cursor.execute(sql_cmd)
 
@@ -427,6 +499,7 @@ def query_db(query_string):
             keys = [ 'id', \
                     'maskname', 'objID', \
                     'primaryID', 'aperture_no', \
+                    'primaryIDv2', 'primaryIDv4', \
                     'field', \
                     'ra', 'dec', \
                     'spec1d_file_k', 'spec2d_file_k', \
@@ -445,6 +518,8 @@ def query_db(query_string):
                 td['id'] = np.int64(td['id'])
                 td['objID'] = np.int64(td['objID'])
                 td['primaryID'] = np.int64(td['primaryID'])
+                td['primaryIDv2'] = np.int64(td['primaryIDv2'])
+                td['primaryIDv4'] = np.int64(td['primaryIDv4'])
                 td['aperture_no'] = np.int64(td['aperture_no'])
                 td['ra'] = np.float64(td['ra'])
                 td['dec'] = np.float64(td['dec'])

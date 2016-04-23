@@ -64,7 +64,10 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         self.maskname = '-----'
         self.obj_id = -99
         self.primID = -99
+        self.primID_v2 = -99
+        self.primID_v4 = -99
         self.aper_no = -1
+        self.field = '-------'
         self.z = -1.  # Which value should this be set as?
         self.z_mosfire_1d = None
         self.z_spec = None
@@ -236,7 +239,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         hbox_z_gris = self.make_hbox_widget([self.lbl_z_gris, self.text_z_gris], stretch=2)
         hbox_z_phot = self.make_hbox_widget([self.lbl_z_phot, self.text_z_phot], stretch=2)
         
-        vbox_z = self.make_vbox_layout([hbox_z_1d,hbox_z_spec, hbox_z_gris, hbox_z_phot])
+        vbox_z = self.make_vbox_layout([hbox_z_1d,
+                            hbox_z_spec, hbox_z_gris, hbox_z_phot])
         
         vbox_hmag = self.make_vbox_layout([hbox_hmag])
                                 
@@ -430,6 +434,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
             # %%%%%%%%%%%%%%%%%%%%%%%
             # Update values
             self.primID = query[0]['primaryID']
+            self.primID_v2 = query[0]['primaryIDv2']
+            self.primID_v4 = query[0]['primaryIDv4']
             self.aper_no = query[0]['aperture_no']
             self.query_info = query[0]
                 
@@ -478,7 +484,10 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         if query_good:
             # %%%%%%%%%%%%%%%%%%%%%%%
             # Update values
+            self.field = query[0]['field']
             self.obj_id = query[0]['objID']
+            self.primID_v2 = query[0]['primaryIDv2']
+            self.primID_v4 = query[0]['primaryIDv4']
             self.query_info = query[0]
             
             # Get info from a 2D header, if primary:

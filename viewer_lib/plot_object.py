@@ -23,7 +23,7 @@ import matplotlib.gridspec as gridspec
 
 from database import query_db
 from viewer_io import read_spec1d, read_spec2d, read_pstamp, read_3dhst_cat
-from viewer_io import maskname_interp
+from viewer_io import maskname_interp, get_tdhst_vers
 
 from position_angles import angle_offset
 
@@ -121,6 +121,10 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     # Read in data from files
     spec2d, spec2d_hdr = read_spec2d(self.query_info['spec2d_file_'+band.lower()])
     
+    # Get 3DHST version number:
+    tdhst_vers = get_tdhst_vers(spec2d_hdr)
+    print "tdhst_vers=", tdhst_vers
+    
     lamdelt = spec2d_hdr['cdelt1']
     lam0 = spec2d_hdr['crval1'] - ((spec2d_hdr['crpix1']-1)*spec2d_hdr['cdelt1'])
     lamend = lam0+lamdelt*(np.shape(spec2d)[1]-1)
@@ -209,10 +213,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     ax3 = self.fig.add_subplot(gs[0,1])
     ax3.set_axis_off()
     
-    splt = re.split('v', spec2d_hdr['version'])
-    tdhst_vers = splt[-1]
-    
-    pstamp, pstamp_hdr = read_pstamp(spec2d_hdr['field'], self.primID)
+    pstamp, pstamp_hdr = read_pstamp(self.field, self.primID_v2)
 
     # WFC3 pixel scale is ~0.06"/pix
     
@@ -226,7 +227,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
             
         # Angle btween 3DHST and MOSFIRE slit PA- 
         angle = angle_offset(self.maskname, self.obj_id, 
-                    field=spec2d_hdr['field'], 
+                    field=self.field, 
                     mask_PA=spec2d_hdr['PA'], 
                     pstamp_hdr=pstamp_hdr, vers=tdhst_vers)   # Decimal_degrees
         
@@ -284,16 +285,15 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
                 
         ###################################################################
         # Overplot circles for objects within the field of view:
-        splt = re.split('v', spec2d_hdr['version'])
-        tdhst_vers = splt[-1]
         field = maskname_interp(self.maskname)[0]
         tdhst_cat = read_3dhst_cat(field, vers=tdhst_vers)
         
         # If the tdhst_cat is found:
         if tdhst_cat is not None:
+            pad_arcsec = 1. # 2.
             # Define region with 1" padding around slit area, for plotting object IDs.
             rect_padded_x, rect_padded_y = padded_region([pos_11,pos_21,pos_22,pos_12,pos_11], 
-                    slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=2., pscale_3dhst=pscale_3dhst)
+                    slit_angle*d2r, x0=x0, y0=y0+y0_off, pad=pad_arcsec, pscale_3dhst=pscale_3dhst)
         
             # Get info for primary object, if the 1D spectra exist:
             try:

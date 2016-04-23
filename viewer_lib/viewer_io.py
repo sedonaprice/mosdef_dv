@@ -24,6 +24,20 @@ hostname = socket.gethostname()
 mbp = 'shp-mbp'
 pepper = 'pepper.astro.berkeley.edu'
 
+def get_tdhst_vers(hdr):
+    catfile = hdr['CATALOG']
+    
+    splt = re.split('\.',catfile)
+    
+    
+    tdhst_vers_raw = ".".join(splt[-2:])
+    
+    
+    splt = re.split('v', tdhst_vers_raw)
+    tdhst_vers = splt[-1]
+    
+    return tdhst_vers
+
 
 def field_short2long(field):
     return {
@@ -220,7 +234,17 @@ def read_pstamp(field, ID):
             return None, None
 
 
-
+def read_parent_cat(vers='2.1', field=None):
+    path = read_path('MOSDEF_DV_PARENT')
+    filename = path+'/'+field+'_v'+vers+'.zall.parent.fits'
+    
+    
+    hdu = fits.open(filename)
+    data = hdu[1].data.copy()
+    data_df = fits_to_df(data)
+    hdu.close()
+    
+    return data_df
 
 def read_0d_cat(vers='2.1'):
     """
@@ -322,6 +346,8 @@ def fits_to_df(fitsrec):
     
     
 def read_bmep_redshift_slim(mask, primID, aper_no):
+    #print "mask, primID, aper_no=", mask, primID, aper_no
+    
     path = read_path('MOSDEF_DV_BMEP_Z')
     filename = path+'/00_redshift_catalog_slim_bmep.txt'
     
@@ -333,18 +359,25 @@ def read_bmep_redshift_slim(mask, primID, aper_no):
                             
         redshift_info = pd.DataFrame(redshift_info_fits)
         
-        try:
-        # Has a match
-            wh_mask = np.where(redshift_info['maskname'] == mask)[0]
-            wh_prim = np.where(redshift_info['primID'] == np.int64(primID))[0]
-            wh_aper = np.where(redshift_info['aper_no'] == np.int64(aper_no))[0]
-            wh_1 = np.intersect1d(wh_prim, wh_mask)[0]
-            wh = np.intersect1d(wh_1, wh_aper)[0]
+        # try:
+        # # Has a match
+        wh_mask = np.where(redshift_info['maskname'] == mask)[0]
+        wh_prim = np.where(redshift_info['primID'] == np.int64(primID))[0]
+        wh_aper = np.where(redshift_info['aper_no'] == np.int64(aper_no))[0]
+        
+        #print "wh_mask, wh_prim, wh_aper=", wh_mask, wh_prim, wh_aper
+        
+        wh_1 = np.intersect1d(wh_prim, wh_mask)
+        #print "wh_1=", wh_1
+        wh = np.intersect1d(wh_1, wh_aper)[0]
+        #print "wh=", wh
     
-            return redshift_info['z1'][wh]
-        except:
-            # No match in file
-            return -1.
+        return redshift_info['z1'][wh]
+        
+        
+        # except:
+        #     # No match in file
+        #     return -1.
     else:
         return -1.
     
