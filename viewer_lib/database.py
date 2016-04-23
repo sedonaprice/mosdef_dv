@@ -35,11 +35,14 @@ def db_delete(dbname):
 ## Extra part of 1D filenames
 #extra_1d = 'ell'
 extra_1d = read_path('EXTRA_1D_END')
-extra_1d_list = extra_1d.split()
-if len(extra_1d_list) > 0:
-    extra_1d = extra_1d_list[0]
-if extra_1d is not '':
-    extra_1d = '.'+extra_1d
+if extra_1d is not None:
+    extra_1d_list = extra_1d.split()
+    if len(extra_1d_list) > 0:
+        extra_1d = extra_1d_list[0]
+    if extra_1d is not '':
+        extra_1d = '.'+extra_1d
+else:
+    extra_1d = ''
 ############################################################
 def field_short2long(field):
     return {
@@ -292,7 +295,7 @@ def cat_struct():
             data, data_err, light_profile, hdr = read_spec1d(files_1d[mm])
             if hdr is not None:
                 tdhst_vers = get_tdhst_vers(hdr)
-                print "mm, maskname, id=", mm, obj_df.ix[i]['maskname'], prim_id_name
+                print "maskname, id=", obj_df.ix[i]['maskname'], prim_id_name
                 
         
         # Get match from parent cat for v2, v4 ids:

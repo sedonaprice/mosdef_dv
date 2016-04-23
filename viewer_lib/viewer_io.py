@@ -460,7 +460,13 @@ def detection_general(field, filt='F160W', vers='4.0', hdr_only=False,
                         
                         
     field_lower = "".join(field.split('-')).lower()
-    path_tmp = '/Volumes/Surveys/3DHST/v'+vers+'/'+field.upper()+'/Detection/'
+    #path_tmp = '/Volumes/Surveys/3DHST/
+    path_tmp = read_path('TDHST_CAT')
+    # clean up any trailing slash
+    if path_tmp is not None:
+        if path_tmp[-1] == '/':
+            path_tmp = path_tmp[0:-1]
+    path_tmp = path_tmp+'/v'+vers+'/'+field.upper()+'/Detection/'
     filename = path_tmp + field_lower+'_3dhst.v'+vers+'.'+filt+'_orig_sci.fits'
     filename2 = filename+'.gz'
     
@@ -509,26 +515,32 @@ def get_data_fromfits_img(filename, filename2, hdr_only=False,
                     hdr = fits.getheader(filename, ext).copy()
                     
         except:
-            if (sect_x is None) and (sect_y is None):
-                if no_hdr:
-                    data = fits.getdata(filename2, ext=ext)
+            try:
+                if (sect_x is None) and (sect_y is None):
+                    if no_hdr:
+                        data = fits.getdata(filename2, ext=ext)
+                    else:
+                        data = fits.getdata(filename2, ext=ext)
+                        hdr = fits.getheader(filename2, ext)
                 else:
-                    data = fits.getdata(filename2, ext=ext)
-                    hdr = fits.getheader(filename2, ext)
-            else:
-                if sect_x is None:
-                    sect_x = [0, -1]
-                if sect_y is None:
-                    sect_y = [0, -1]
+                    if sect_x is None:
+                        sect_x = [0, -1]
+                    if sect_y is None:
+                        sect_y = [0, -1]
         
-                fits_file = fits.open(filename2)
+                    fits_file = fits.open(filename2)
         
-                # 
-                data = fits_file[ext].section[sect_y[0]:sect_y[1],
-                                sect_x[0]:sect_x[1]].copy()
+                    # 
+                    data = fits_file[ext].section[sect_y[0]:sect_y[1],
+                                    sect_x[0]:sect_x[1]].copy()
         
-                if not no_hdr:
-                    hdr = fits.getheader(filename2, ext)
+                    if not no_hdr:
+                        hdr = fits.getheader(filename2, ext)
+            except:
+                if no_hdr:
+                    return None
+                else:
+                    return None, None
 
         fits_file.close()
         #fits_file = None

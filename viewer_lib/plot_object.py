@@ -33,7 +33,7 @@ try:
     shapely_installed = True
 except:
     print "*******************************************"
-    print "* Python package 'shapley' not installed. *"
+    print "* Python package 'shapely' not installed. *"
     print "*******************************************"
     shapely_installed = False
     
@@ -87,14 +87,51 @@ def plotObject(self):
                   top=0.96, bottom=0.0,
                   hspace=0.05,
                   wspace=0.)
+                  
+                  
+        # Read in any 2d hdr:
+        spec2d_hdr = self.get_any_2d_hdr()
+
+        # Get 3DHST version number:
+        tdhst_vers = get_tdhst_vers(spec2d_hdr)
+                  
+        # Read in the pstamp: same for all objects:
+        #field = maskname_interp(self.maskname)[0]
+        tdhst_cat = read_3dhst_cat(self.field, vers=tdhst_vers)
+
+        pstamp, pstamp_hdr = read_pstamp(self.field, self.primID_v2)
+        if (pstamp is None):
+            # Match object
+
+            wh = np.where(tdhst_cat['ID'] == np.int64(self.primID))[0]
+            # print "wh = ", wh
+            # 
+            # print "tdhst_vers=", tdhst_vers
+            # print "self.primID, self.primID_v2, self.primID_v4 =", self.primID, self.primID_v2, self.primID_v4
+            # print "tdhst_cat['RA'][wh]=", tdhst_cat['RA'][wh]
+            # print "tdhst_cat['DEC'][wh]=", tdhst_cat['DEC'][wh]
+
+            if len(wh)> 0:
+                wh = wh[0]
+                ra = tdhst_cat['RA'][wh]
+                dec = tdhst_cat['DEC'][wh]
+
+                pstamp, pstamp_hdr = read_pstamp_from_detect(self.field, 
+                    np.int64(self.primID_v4), ra, dec, img_vers='4.0')
+        
                             
         for i,b in enumerate(has_bands):
-            plotBand(self, gs_main, pos=i, band=b, cutoff=cutoffs[i])
+            plotBand(self, gs_main, pos=i, band=b, cutoff=cutoffs[i],
+                    pstamp=pstamp, pstamp_hdr=pstamp_hdr, tdhst_cat=tdhst_cat,
+                    tdhst_vers=tdhst_vers)
     
     # And draw the figure!    
     self.canvas.draw()
 
-def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
+def plotBand(self, gs_main, pos=0, band='K', cutoff=3., 
+            pstamp=None, pstamp_hdr=None, tdhst_cat=None, tdhst_vers=None):
+            
+            
     gs = gridspec.GridSpecFromSubplotSpec(2,2, 
               subplot_spec = gs_main[pos],
               width_ratios = [7,1], 
@@ -123,8 +160,6 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     # Read in data from files
     spec2d, spec2d_hdr = read_spec2d(self.query_info['spec2d_file_'+band.lower()])
     
-    # Get 3DHST version number:
-    tdhst_vers = get_tdhst_vers(spec2d_hdr)
     
     lamdelt = spec2d_hdr['cdelt1']
     lam0 = spec2d_hdr['crval1'] - ((spec2d_hdr['crpix1']-1)*spec2d_hdr['cdelt1'])
@@ -214,28 +249,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     ax3 = self.fig.add_subplot(gs[0,1])
     ax3.set_axis_off()
     
-    field = maskname_interp(self.maskname)[0]
-    tdhst_cat = read_3dhst_cat(field, vers=tdhst_vers)
     
-    pstamp, pstamp_hdr = read_pstamp(field, self.primID_v2)
-    if ((pstamp is None) & (pos >= 0)):
-        # Match object
-        
-        wh = np.where(tdhst_cat['ID'] == np.int64(self.primID))[0]
-        # print "wh = ", wh
-        # 
-        # print "tdhst_vers=", tdhst_vers
-        # print "self.primID, self.primID_v2, self.primID_v4 =", self.primID, self.primID_v2, self.primID_v4
-        # print "tdhst_cat['RA'][wh]=", tdhst_cat['RA'][wh]
-        # print "tdhst_cat['DEC'][wh]=", tdhst_cat['DEC'][wh]
-        
-        if len(wh)> 0:
-            wh = wh[0]
-            ra = tdhst_cat['RA'][wh]
-            dec = tdhst_cat['DEC'][wh]
-        
-            pstamp, pstamp_hdr = read_pstamp_from_detect(self.field, np.int64(self.primID_v4), ra, dec, img_vers='4.0')
-
     # WFC3 pixel scale is ~0.06"/pix
     
     if pstamp is not None:
