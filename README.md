@@ -30,7 +30,7 @@ On pepper, this should be
 
 
 ######Launch program:
-Navigate to the directory where you would like to run the DV. The program will automatically create the folder "mosdef_dv_data" (if it doesn't already exist), which will contain the DB and path information.  
+Navigate to the directory where you would like to run the DV. The program will automatically create the folder "mosdef_dv_data" (if it doesn't already exist), which holds the necessary DB and path information.
 __You must always run MOSDEF DV from this directory to keep using the current DB and 
 previously set paths.__
 
