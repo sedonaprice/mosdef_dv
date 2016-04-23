@@ -99,7 +99,10 @@ def plotObject(self):
         #field = maskname_interp(self.maskname)[0]
         tdhst_cat = read_3dhst_cat(self.field, vers=tdhst_vers)
 
-        pstamp, pstamp_hdr = read_pstamp(self.field, self.primID_v2)
+        if self.field.upper() != 'AEGIS':
+            pstamp, pstamp_hdr = read_pstamp(self.field, self.primID_v2)
+        else:
+            pstamp, pstamp_hdr = read_pstamp(self.field, self.primID_v4)
         if (pstamp is None):
             # Match object
 
