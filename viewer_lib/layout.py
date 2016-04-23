@@ -123,8 +123,13 @@ class DV_Layout(object):
         h_com = self.make_hbox_widget([com_lbl], stretch=1)
         vbox_com.addLayout(h_com)
         vbox_com.setAlignment(h_com, Qt.AlignHCenter)
+        
+        
+        hline_com = self.make_hline()
+        vbox_com.addLayout(hline_com)
                 
         vbox_com.addStretch(1)
+        vbox_com.addSpacing(5)
         
         return vbox_com, com_lbl
         
@@ -145,8 +150,10 @@ class DV_Layout(object):
             if len(comments_list) > 0:
                 # Convert this to one string, with carriage returns between lines.
                 str_long = ''
-                for com in comments_list:
-                    str_long = str_long+com+'\n'
+                for ii, com in enumerate(comments_list):
+                    str_long = str_long+com
+                    if ii < len(comments_list)-1:
+                        str_long = str_long+'\n'
                     
                 return str_long
             else:
@@ -154,10 +161,29 @@ class DV_Layout(object):
         else:
             return ''
             
+    def make_current_extract(self, initprim=None, initaper=None, initcols=None):
+        hline_current_extract = self.make_hline()
+        
+        lbl = QLabel("Extracted object:")
+        lbl.setTextFormat(Qt.RichText)
+        
+        text = QLabel()
+        text.setTextFormat(Qt.RichText)
+        text.setWordWrap(True)
+        
+        str_long = self.update_current_extract(initprim=initprim, initaper=initaper, initcols=initcols)
+        text.setText(str_long)
+        
+        hbox_cur = self.make_hbox_widget([text], stretch=1)
+        h_lbl = self.make_hbox_widget([lbl], stretch=1)
+        vbox_cur = self.make_vbox_layout([hline_current_extract, h_lbl, hbox_cur])
+        
+        return vbox_cur, text
+            
     def make_serendip_list(self, initlist=None, initcols=None):
         hline_serendip = self.make_hline()
         
-        lbl = QLabel("Serendips:")
+        lbl = QLabel("Objects in/near slit:")
         lbl.setTextFormat(Qt.RichText)
         
         text = QLabel()
@@ -177,13 +203,33 @@ class DV_Layout(object):
         #<span style="color:#aa0000;">TextLabel</span>
         if (color == 'yellow') or (color == 'cyan'):
             markup = '<span style="color:'+color
-            markup = markup+'; background-color:DimGray">'+text+'</span>'
+            #markup = markup+'; background-color:DimGray">'+text+'</span>'
+            markup = '<span style="color:'+color+'">'+text+'</span>'
         else:
             markup = '<span style="color:'+color+'">'+text+'</span>'
         #markup = '<color='+color+'>'+text+'</color>'
         return markup
         
+        
+        
+    def update_current_extract(self, initprim=None, initaper=None,initcols=None):
+        if ((initprim is not None) & (initprim != -99)):
+            if initaper > 1:
+                initlist = str(initprim)+'.'+str(initaper)
+            else:
+                initlist = str(initprim)
+            markup_str = self.make_serendip_markup(text=initlist, 
+                                            color=initcols)
+        
+            str_long = markup_str#+'<p>'
+        
+            return str_long
+        else:
+            return ''
+        
+        
     def update_serendip_list(self, initlist=None, initcols=None):
+        
         bands = ['K', 'H', 'J', 'Y']
         vals_num = []
         if initlist is not None:
@@ -240,8 +286,11 @@ class DV_Layout(object):
             if len(serendip_text) > 0:
                 # Convert this to one string, with carriage returns between lines.
                 str_long = ''
-                for com in serendip_text:
-                    str_long = str_long+com+'<p>'
+                for ii, com in enumerate(serendip_text):
+                    if ii < len(serendip_text)-1:
+                        str_long = str_long+com+'<p>'
+                    else:
+                        str_long = str_long+com
 
                 return str_long
             else:

@@ -22,7 +22,7 @@ from matplotlib.axes import Axes
 import matplotlib.gridspec as gridspec
 
 from database import query_db
-from viewer_io import read_spec1d, read_spec2d, read_pstamp, read_3dhst_cat
+from viewer_io import read_spec1d, read_spec2d, read_pstamp, read_3dhst_cat, read_pstamp_from_detect
 from viewer_io import maskname_interp, get_tdhst_vers
 
 from position_angles import angle_offset
@@ -36,6 +36,9 @@ except:
     print "* Python package 'shapley' not installed. *"
     print "*******************************************"
     shapely_installed = False
+    
+frac_pstamp = 0.05
+frac_spec = 0.05
 
 ############
 # For testing:
@@ -66,12 +69,10 @@ def plotObject(self):
     if self.query_good == 1:
         # Initialize overall figure:
         # Set overall figure title
-        font_main_header = FontProperties()
-        font_main_header.set_size(10.)
         title =  'Mask: '+self.maskname+', ID:'+str(self.obj_id)+\
                     ", PrimID:"+str(self.primID)+", Aper:"+str(self.aper_no)
                 
-        self.fig.suptitle(title,fontproperties=font_main_header,
+        self.fig.suptitle(title, fontsize=10.,  #backgroundcolor='cyan', 
                             x=0.5, y=1.)
                 
 
@@ -113,6 +114,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
 
     # &&&&&&&&&&&&&&&&&&&&
     # SPEC2D plot prep:
+    
             
     # Add 2D spectrum axis:
     ax2 = self.fig.add_subplot(gs[1,0])
@@ -123,7 +125,6 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     
     # Get 3DHST version number:
     tdhst_vers = get_tdhst_vers(spec2d_hdr)
-    print "tdhst_vers=", tdhst_vers
     
     lamdelt = spec2d_hdr['cdelt1']
     lam0 = spec2d_hdr['crval1'] - ((spec2d_hdr['crpix1']-1)*spec2d_hdr['cdelt1'])
@@ -183,8 +184,8 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
         range_spec = spec2d[np.isfinite(spec2d)].copy()
         range_spec.sort()
         ax2.imshow(spec2d, cmap=cm.gray, \
-              vmin = range_spec[.05*len(range_spec)], \
-              vmax = range_spec[.95*len(range_spec)], \
+              vmin = range_spec[frac_spec*len(range_spec)], \
+              vmax = range_spec[(1.-frac_spec)*len(range_spec)], \
               interpolation='None', origin='lower')
               
         ax2.format_coord = make_format_ax2(ax2, spec2d_hdr, left_inds[1])
@@ -213,7 +214,27 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
     ax3 = self.fig.add_subplot(gs[0,1])
     ax3.set_axis_off()
     
-    pstamp, pstamp_hdr = read_pstamp(self.field, self.primID_v2)
+    field = maskname_interp(self.maskname)[0]
+    tdhst_cat = read_3dhst_cat(field, vers=tdhst_vers)
+    
+    pstamp, pstamp_hdr = read_pstamp(field, self.primID_v2)
+    if ((pstamp is None) & (pos >= 0)):
+        # Match object
+        
+        wh = np.where(tdhst_cat['ID'] == np.int64(self.primID))[0]
+        # print "wh = ", wh
+        # 
+        # print "tdhst_vers=", tdhst_vers
+        # print "self.primID, self.primID_v2, self.primID_v4 =", self.primID, self.primID_v2, self.primID_v4
+        # print "tdhst_cat['RA'][wh]=", tdhst_cat['RA'][wh]
+        # print "tdhst_cat['DEC'][wh]=", tdhst_cat['DEC'][wh]
+        
+        if len(wh)> 0:
+            wh = wh[0]
+            ra = tdhst_cat['RA'][wh]
+            dec = tdhst_cat['DEC'][wh]
+        
+            pstamp, pstamp_hdr = read_pstamp_from_detect(self.field, np.int64(self.primID_v4), ra, dec, img_vers='4.0')
 
     # WFC3 pixel scale is ~0.06"/pix
     
@@ -221,8 +242,8 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
         range_spec = pstamp[np.isfinite(pstamp)].copy()
         range_spec.sort()
         ax3.imshow(pstamp, cmap=cm.gray, \
-                vmin = range_spec[.02*len(range_spec)], \
-                vmax = range_spec[.98*len(range_spec)], \
+                vmin = range_spec[frac_pstamp*len(range_spec)], \
+                vmax = range_spec[(1.-frac_pstamp)*len(range_spec)], \
                 interpolation='None', origin='lower')
             
         # Angle btween 3DHST and MOSFIRE slit PA- 
@@ -285,8 +306,6 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.):
                 
         ###################################################################
         # Overplot circles for objects within the field of view:
-        field = maskname_interp(self.maskname)[0]
-        tdhst_cat = read_3dhst_cat(field, vers=tdhst_vers)
         
         # If the tdhst_cat is found:
         if tdhst_cat is not None:
@@ -385,7 +404,8 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w,  main_id, main_y_pos
     wh_in_stamp = np.intersect1d(wh_ra, wh_dec)
     
     
-    colors = ['cyan', 'orange', 'magenta', 'yellow', 'red', 'MediumSlateBlue']
+    #colors = ['cyan', 'orange', 'magenta', 'yellow', 'red', 'MediumSlateBlue']
+    colors = ['darkturquoise', 'orange', 'magenta', 'yellowgreen', 'red', 'MediumSlateBlue']
     
     # Find the y_pos in un-rot coord of the primary object:
     ind_prim = np.where(tdhst_cat['id'] == np.float64(self.primID))[0][0]
@@ -403,12 +423,13 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w,  main_id, main_y_pos
         slit_ys = []
         color_ind = 0
         for ind in wh_in_stamp:
-            color_ind, ser_ids, ser_cols, slit_ys = plot_detection(ax3, ax2d, tdhst_cat, w, 
+            color_ind, ser_ids, ser_cols, slit_ys = plot_detection(self, ax3, ax2d, tdhst_cat, w, 
                  main_id, main_y_pos, prim_y_pos, y_prim_HST, 
                 slit_angle, pscale_ratio, x0, y0, 
                 ind, corners=corners, 
                 colors=colors, color_ind=color_ind, 
                 ser_ids=ser_ids, ser_cols=ser_cols, slit_ys=slit_ys)
+                
         
         
         # Sort on slit_ys:
@@ -428,10 +449,18 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w,  main_id, main_y_pos
         col_all.append([band, ser_cols_sort])
         self.serendip_ids = ser_all
         self.serendip_colors = col_all
+        
+        ser_ids_int = np.array(ser_ids_sort,dtype=np.int64)
+        wh_tmp = np.where(ser_ids_int == self.obj_id)[0]
+        if len(wh_tmp)>0:
+            self.obj_id_color = ser_cols_sort[wh_tmp]
+        else:
+            self.obj_id_color='black'
+            
     
     return None
     
-def plot_detection(ax, ax2d, tdhst_cat, w, main_id, main_y_pos, prim_y_pos, 
+def plot_detection(self, ax, ax2d, tdhst_cat, w, main_id, main_y_pos, prim_y_pos, 
             y_prim_HST, slit_angle, pscale_ratio, 
             x0, y0, ind, corners=None, colors=['cyan'], color_ind=0,
             ser_ids=None, ser_cols=None, slit_ys=None):
@@ -495,6 +524,7 @@ def plot_detection(ax, ax2d, tdhst_cat, w, main_id, main_y_pos, prim_y_pos,
         else:
             length = 0.05
             
+        
         plot_spatial_pos(ax2d, y_pos, 
                     ls='-', color=colors[color_ind], length=length)
         

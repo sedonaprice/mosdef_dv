@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 import re
+import gc
 
 # from mosdef_io import read_data
 # try:   
@@ -17,7 +18,7 @@ import re
 # except:
 #     pass
     
-from astropy import wcs
+from astropy.wcs import WCS
 
 import socket
 hostname = socket.gethostname()
@@ -35,6 +36,7 @@ def get_tdhst_vers(hdr):
     
     splt = re.split('v', tdhst_vers_raw)
     tdhst_vers = splt[-1]
+    
     
     return tdhst_vers
 
@@ -149,6 +151,7 @@ def read_spec1d(filename, optimal=True):
     # clean up any trailing slash
     if basedir[-1] == '/':
         basedir = basedir[0:-1]
+        
 
     exist = os.path.isfile(basedir+'/'+filename)
     if exist:
@@ -203,7 +206,7 @@ def read_spec2d(filename):
     return data, hdr
 
 
-def read_pstamp(field, ID):
+def read_pstamp(field, ID, RA=None,DEC=None):
 
     path = read_path('MOSDEF_DV_PSTAMP')
     path = path+'/'+field.upper()+'/'
@@ -232,6 +235,7 @@ def read_pstamp(field, ID):
             return pstamp, hdr
         except:
             return None, None
+            
 
 
 def read_parent_cat(vers='2.1', field=None):
@@ -353,11 +357,11 @@ def read_bmep_redshift_slim(mask, primID, aper_no):
     
     if os.path.exists(filename):
  
-        redshift_info_fits = np.genfromtxt(filename, dtype=None,
+        redshift_infofits = np.genfromtxt(filename, dtype=None,
                     names=['maskname', 'primID', 'aper_no', 'z1', 'n_lines1',
                             'z2', 'n_lines2'])
                             
-        redshift_info = pd.DataFrame(redshift_info_fits)
+        redshift_info = pd.DataFrame(redshift_infofits)
         
         # try:
         # # Has a match
@@ -380,4 +384,160 @@ def read_bmep_redshift_slim(mask, primID, aper_no):
         #     return -1.
     else:
         return -1.
+        
+        
+#
+def read_pstamp_from_detect(field,ID,ra,dec, img_vers='4.0', filt='F160W', pad = 7.):
+    # pad: [arcsec]  # 7.
+    
+    if (ra is None) | (dec is None):
+        return None, None
+    else:
+
+        
+        
+        # Need to find out the limits of the number of pix you can trim
+        hdr = read_detection(field, vers=img_vers, hdr_only=True)
+        
+        w = WCS(hdr)
+        wcs_origin = 1 #1
+        
+        
+        x, y = w.wcs_world2pix(ra, dec, wcs_origin)
+        x = np.int(np.round(x))
+        y = np.int(np.round(y))
+        
+        pad = pad/0.06 #np.int(np.round(pad/0.06))    # 2 arcsec / (0.06 arcsec/pix)
+    
+        xmin = max([0, x-pad])
+        xmax = min([x+pad+1, hdr['NAXIS1']])
+        ymin = max([0, y-pad])
+        ymax = min([y+pad+1, hdr['NAXIS2']])
+        
+        
+        xmin = np.int(np.round(xmin))
+        xmax = np.int(np.round(xmax))
+        ymin = np.int(np.round(ymin))
+        ymax = np.int(np.round(ymax))
+        
+        
+    
+        pstamp = read_detection(field, filt=filt, vers=img_vers,
+                              sect_x=[xmin, xmax],
+                              sect_y=[ymin, ymax],
+                              no_hdr=True)
+        
+        
+        # Update header values: NAXIS1, NAXIS2, CRPIX1, CRPIX2, 
+        #               CRVAL1, CRVAL2
+        CRPIX1 = xmin # Numpy coordinates -- starts at 0
+        CRPIX2 = ymin # Numpy coordinates -- starts at 0
+        
+    
+        CRVAL1, CRVAL2 = w.wcs_pix2world(CRPIX1+1, CRPIX2+1, wcs_origin)
+        #print w.wcs_world2pix(hdr['CRVAL1'], hdr['CRVAL1'], wcs_origin)
+    
+        hdr['NAXIS1'] = np.shape(pstamp)[0]
+        hdr['NAXIS2'] = np.shape(pstamp)[1]
+        hdr['CRPIX1'] = 1.#1.#0. # 0.5 #CRPIX1  # 
+        hdr['CRPIX2'] = 1. #1. #0. #CRPIX2
+        hdr['CRVAL1'] = CRVAL1*1.  # make a float
+        hdr['CRVAL2'] = CRVAL2*1.  # make a float
+        
+        
+        
+        return pstamp, hdr
+        
+        
+def read_detection(field, vers='4.0', filt='F160W', sect_x=None, sect_y=None, hdr_only=False, no_hdr=False):
+    
+    return detection_general(field, filt=filt, vers=vers, hdr_only=hdr_only,
+            no_hdr=no_hdr, sect_x=sect_x, sect_y=sect_y, alt=True)
+            
+#
+def detection_general(field, filt='F160W', vers='4.0', hdr_only=False,
+                        no_hdr=False, sect_x=None, sect_y=None, alt=False):
+                        
+                        
+    field_lower = "".join(field.split('-')).lower()
+    path_tmp = '/Volumes/Surveys/3DHST/v'+vers+'/'+field.upper()+'/Detection/'
+    filename = path_tmp + field_lower+'_3dhst.v'+vers+'.'+filt+'_orig_sci.fits'
+    filename2 = filename+'.gz'
+    
+    ext = 0
+    
+    return get_data_fromfits_img(filename, filename2, hdr_only=hdr_only, 
+                                    no_hdr=no_hdr, sect_x=sect_x, sect_y=sect_y, ext=ext)
+                                    
+                                    
+#
+def get_data_fromfits_img(filename, filename2, hdr_only=False, 
+                                no_hdr=False, sect_x=None, sect_y=None, ext=None):
+    
+    if ext is None:
+        ext = 0
+
+    if hdr_only:
+        try:
+            hdr = fits.getheader(filename, ext).copy()
+        except:
+            hdr = fits.getheader(filename2, ext).copy()
+
+        return hdr
+    else:
+        try:    
+            if (sect_x is None) and (sect_y is None):
+                if no_hdr:
+                    data = fits.getdata(filename, ext=ext).copy()
+                
+                else:
+                    data= fits.getdata(filename, ext=ext, header=False).copy()
+                    hdr = fits.getheader(filename, ext).copy()
+            else:
+                if sect_x is None:
+                    sect_x = [0, -1]
+                if sect_y is None:
+                    sect_y = [0, -1]
+
+                fits_file = fits.open(filename)
+
+
+                data = fits_file[ext].section[sect_y[0]:sect_y[1],
+                                        sect_x[0]:sect_x[1]].copy()
+
+                if not no_hdr:
+                    hdr = fits.getheader(filename, ext).copy()
+                    
+        except:
+            if (sect_x is None) and (sect_y is None):
+                if no_hdr:
+                    data = fits.getdata(filename2, ext=ext)
+                else:
+                    data = fits.getdata(filename2, ext=ext)
+                    hdr = fits.getheader(filename2, ext)
+            else:
+                if sect_x is None:
+                    sect_x = [0, -1]
+                if sect_y is None:
+                    sect_y = [0, -1]
+        
+                fits_file = fits.open(filename2)
+        
+                # 
+                data = fits_file[ext].section[sect_y[0]:sect_y[1],
+                                sect_x[0]:sect_x[1]].copy()
+        
+                if not no_hdr:
+                    hdr = fits.getheader(filename2, ext)
+
+        fits_file.close()
+        #fits_file = None
+
+        if no_hdr:
+            return data
+        else:
+            return data, hdr
+
+
+    
     

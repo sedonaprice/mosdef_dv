@@ -32,8 +32,14 @@ def db_delete(dbname):
     return None
     
     
-# Extra part of 1D filenames
-extra_1d = 'ell'
+## Extra part of 1D filenames
+#extra_1d = 'ell'
+extra_1d = read_path('EXTRA_1D_END')
+extra_1d_list = extra_1d.split()
+if len(extra_1d_list) > 0:
+    extra_1d = extra_1d_list[0]
+if extra_1d is not '':
+    extra_1d = '.'+extra_1d
 ############################################################
 def field_short2long(field):
     return {
@@ -75,6 +81,7 @@ def const_filename(filehead,mid,fileend, basedir, dim=2):
     filename_dir = basedir+'/'+filehead+'.'+mid+'.'+fileend
     filename = filehead+'.'+mid+'.'+fileend
 
+
     exist = os.path.isfile(filename_dir)
     if exist:
         return filename
@@ -84,6 +91,7 @@ def const_filename(filehead,mid,fileend, basedir, dim=2):
             splt = re.split(r'\.', filename.strip())
             filename_new = '.'.join(splt[0:len(splt)-3])
             filename_new = filename_new+'.'+'.'.join(splt[-2:])
+            
             
             exist = os.path.isfile(basedir+'/'+filename_new)
             if exist:
@@ -242,7 +250,7 @@ def cat_struct():
         file_1d_base = obj_df.ix[i]['maskname']
         file_2d_base = obj_df.ix[i]['maskname']
         if np.int(obj_df.ix[i]['aper_no']) == 1:
-            file_1d_end = obj_df.ix[i]['primID']+'.'+extra_1d+'.1d.fits'
+            file_1d_end = obj_df.ix[i]['primID']+extra_1d+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
             
             try:
@@ -250,9 +258,9 @@ def cat_struct():
             except:
                 objID = np.int64(obj_df.ix[i]['primID'][1:])
         else:
-            file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+'.'+extra_1d+'.1d.fits'
+            file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+extra_1d+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
-             
+            
             # # Get identified objID if there is an entry in the master cat:
             # if wh is not None:
             #     objID = mosdef_0d_cat['ID'][wh]
@@ -262,27 +270,30 @@ def cat_struct():
         files_1d = []
         files_2d = []
         for f in filters:
+            #print "file_1d_base, f, file_1d_end, basedir_1d=", file_1d_base, f, file_1d_end, basedir_1d
             file1d = const_filename(file_1d_base, f, file_1d_end, basedir_1d,dim=1)
+            
             files_1d.append(file1d)
             
             file2d = const_filename(file_2d_base, f, file_2d_end, basedir_2d,dim=2)
             files_2d.append(file2d)
+            
         
         ###############################
         # Get tdhst_version from 2D header:
+        #raise ValueError
         tdhst_vers = None
-        mm = 0
+        mm = -1
         while tdhst_vers is None:
-            try:
-                data, data_err, light_profile, hdr = read_spec1d(files_1d[mm])
-                tdhst_vers = get_tdhst_vers(hdr)
-            except:
-                pass
-            if mm < len(files_1d)-1:
-                mm += i
-            else:
+            mm += 1
+            if mm > len(files_1d)-1:
                 break
-            
+                
+            data, data_err, light_profile, hdr = read_spec1d(files_1d[mm])
+            if hdr is not None:
+                tdhst_vers = get_tdhst_vers(hdr)
+                print "mm, maskname, id=", mm, obj_df.ix[i]['maskname'], prim_id_name
+                
         
         # Get match from parent cat for v2, v4 ids:
         if tdhst_vers == '2.1':
@@ -402,6 +413,7 @@ def write_cat_db():
                 spec1d_file_j TEXT, spec2d_file_j TEXT,
                 spec1d_file_y TEXT, spec2d_file_y TEXT,
                 hst_file TEXT)""" % collname
+
 
     cursor.execute(sql_cmd)
 

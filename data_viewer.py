@@ -28,6 +28,7 @@ from matplotlib.figure import Figure
 
 from viewer_lib.database import write_cat_db, query_db
 from viewer_lib.viewer_io import read_spec1d_comments, read_spec2d, read_bmep_redshift_slim
+from viewer_lib.viewer_io import get_tdhst_vers, read_parent_cat
 from viewer_lib.database_options import ChangeDBinfo
 
 from viewer_lib.plot_object import plotObject
@@ -76,6 +77,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         self.h_mag = None
         self.query_good = 0
         
+        self.obj_id_color = None
         self.serendip_ids = None
         self.serendip_colors = None
         
@@ -273,13 +275,19 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
                         self.smooth_num], stretch=1)
         
         
-        vbox_mask = self.make_vbox_layout([hline1, h_masksky, h_smooth], spacing=5)
+        #vbox_mask = self.make_vbox_layout([hline1, h_masksky, h_smooth], spacing=5)
+        vbox_mask = self.make_vbox_layout([hline1, h_masksky, h_smooth])
         
+        #####################################
+        # Current extracted object
+        self.vbox_cur, self.current_info = self.make_current_extract(initprim=self.primID, initaper=self.aper_no, 
+                                        initcols=self.obj_id_color)
         
         #####################################
         # Serendip IDs:
         self.vbox_ser, self.serendip_info = self.make_serendip_list(initlist=self.serendip_ids, 
                                         initcols=self.serendip_colors)
+                                    
         
         
         #####################################
@@ -330,8 +338,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         hline_z_input = self.make_hline()
         
         vbox_r_layout = self.make_vbox_layout([vbox_input, hline_z_input, hbox5, 
-                                vbox_z_h, self.vbox_ser, vbox_leg, 
-                                vbox_mask, self.vbox_com, 
+                                self.vbox_cur, vbox_z_h, self.vbox_ser, vbox_leg, 
+                                self.vbox_com, vbox_mask,  
                                 hline3, hbox8], stretch=8)
                                 
         # Scrollable?
@@ -433,6 +441,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         if query_good:
             # %%%%%%%%%%%%%%%%%%%%%%%
             # Update values
+            self.field = query[0]['field']
+            self.obj_id = query[0]['objID']
             self.primID = query[0]['primaryID']
             self.primID_v2 = query[0]['primaryIDv2']
             self.primID_v4 = query[0]['primaryIDv4']
@@ -453,10 +463,17 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         # Redraw
         self.on_draw()
         
-            
+        # Update current object:
+        self.current_info.setText(self.update_current_extract(initprim=self.primID, initaper=self.aper_no, 
+                                        initcols=self.obj_id_color))
+        
         # Update serendips:
         self.serendip_info.setText(self.update_serendip_list(initlist=self.serendip_ids, 
                         initcols=self.serendip_colors))
+        
+
+            
+
         
     
     def on_mask_prim_aper_query(self):
@@ -486,6 +503,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
             # Update values
             self.field = query[0]['field']
             self.obj_id = query[0]['objID']
+            self.primID = query[0]['primaryID']
             self.primID_v2 = query[0]['primaryIDv2']
             self.primID_v4 = query[0]['primaryIDv4']
             self.query_info = query[0]
@@ -504,9 +522,14 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         # Redraw
         self.on_draw()
          
+        # Update current object:
+        self.current_info.setText(self.update_current_extract(initprim=self.primID, initaper=self.aper_no, 
+                                        initcols=self.obj_id_color))
+                
         # Update serendips:
         self.serendip_info.setText(self.update_serendip_list(initlist=self.serendip_ids, 
                         initcols=self.serendip_colors))
+
         
     # Method for dealing with changes to redshift on plot.
     def on_z_update(self):
@@ -604,22 +627,39 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     ##########################################################################
     # Read-in data methods:
     def set_z_values(self, spec2d_hdr, aper_no=1):
+        
         self.z_mosfire_1d = read_bmep_redshift_slim(self.maskname, self.primID, self.aper_no)
         
         if aper_no == 1:
+            # Read in a parent cat:
+            tdhst_vers = get_tdhst_vers(spec2d_hdr)
+            # Get match:
+            parent_cat = read_parent_cat(vers=tdhst_vers, field=self.field)
+            
+            wh_match = np.where(parent_cat['ID'] == np.int64(self.primID))[0][0]
+            print "wh_match=", wh_match
+            print "parent_cat['Z_SPEC'][wh_match]=", parent_cat['Z_SPEC'][wh_match]
+            print "parent_cat['Z_GRISM'][wh_match]=", parent_cat['Z_GRISM'][wh_match]
+            
             # Primary object
             try:
-                self.z_spec = spec2d_hdr['z_spec'.upper()]
+                zspec = parent_cat['Z_SPEC'][wh_match]
+                if ((zspec == -1.) & (parent_cat['EXT_ZSPEC'][wh_match] > 0.)):
+                    zspec = parent_cat['EXT_ZSPEC'][wh_match]
+                self.z_spec = zspec
+                #self.z_spec = spec2d_hdr['z_spec'.upper()]
             except:
                 self.z_spec = -1.
             
             try:
-                self.z_gris = spec2d_hdr['z_grism'.upper()]
+                self.z_gris = parent_cat['Z_GRISM'][wh_match]
+                #self.z_gris = spec2d_hdr['z_grism'.upper()]
             except:
                 self.z_gris = -1.
             
             try:
-                self.z_phot = spec2d_hdr['z_phot'.upper()]
+                self.z_phot = parent_cat['Z_PHOT'][wh_match]
+                #self.z_phot = spec2d_hdr['z_phot'.upper()]
             except:
                 self.z_phot = -1.
         else:
