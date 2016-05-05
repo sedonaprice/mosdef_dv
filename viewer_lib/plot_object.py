@@ -73,7 +73,7 @@ def plotObject(self):
                     ", PrimID:"+str(self.primID)+", Aper:"+str(self.aper_no)
                 
         self.fig.suptitle(title, fontsize=10.,  #backgroundcolor='cyan', 
-                            x=0.5, y=1.)
+                            x=0.5, y=0.99)
                 
 
         has_bands = []
@@ -82,9 +82,15 @@ def plotObject(self):
                 has_bands.append(b)
                             
         # setup the overall gridspec:
+        # gs_main = gridspec.GridSpec(len(has_bands),1, 
+        #           left=0.03, right=.99,
+        #           top=0.96, bottom=0.0,
+        #           hspace=0.05,
+        #           wspace=0.)
+        
         gs_main = gridspec.GridSpec(len(has_bands),1, 
-                  left=0.03, right=.99,
-                  top=0.96, bottom=0.0,
+                  left=0.05, right=0.99,
+                  top=0.95, bottom=0.0,
                   hspace=0.05,
                   wspace=0.)
                   
@@ -662,9 +668,9 @@ def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2., quiescent_lin
             
     #
     if quiescent_lines:
-        lines_q = [5178.1]
-        # MgB
-        cs_q = ['purple']
+        lines_q = [5170.1, 4000., 4341.692, 4102.892]
+        # MgB, D4000, Hg, Hd
+        cs_q = ['mediumseagreen', 'lightcoral', 'slateblue', 'darkorchid']
         
         lines_lam0.extend(lines_q)
         cs.extend(cs_q)
@@ -778,7 +784,9 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
                 # plot the flux errors
                 ax.fill_between(xx, yy_lo, yy_hi, \
                       color='b', \
-                      facecolor='b', alpha=.25)
+                      facecolor='b', \
+                      lw = 0., \
+                      alpha=.25)
 
                 # plot the flux vs wave (observed)
                 ax.plot(xx, yy, 'b-', lw=1)

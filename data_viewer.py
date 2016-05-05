@@ -314,13 +314,19 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         h_yel = self.make_line_leg('[OIII]', 'yellow',line_lbl_wid = 30)
         h_gre = self.make_line_leg('[OII]', 'green')
         
-        h_pur = self.make_line_leg('MgB', 'purple', line_lbl_wid=30)
+        h_sgn = self.make_line_leg('MgB', 'mediumseagreen', line_lbl_wid=30)
+        h_dor = self.make_line_leg('D4000', 'lightcoral', line_lbl_wid=40)
+        h_sbl = self.make_line_leg('H&gamma', 'slateblue')
+        h_pur = self.make_line_leg('H&delta', 'darkorchid')
+        
         
     
         hbox_col_t = self.make_hbox_layout([h_red, h_ora, h_mag],stretch=3)
-        hbox_col_b = self.make_hbox_layout([h_tea, h_gre, h_yel],stretch=3)
-        hbox_col_r = self.make_hbox_layout([h_pur],stretch=3)
-        vbox_l = self.make_vbox_layout([hbox_col_t, hbox_col_b, hbox_col_r],stretch=2)
+        hbox_col_b = self.make_hbox_layout([h_tea, h_yel, h_gre],stretch=3)
+        hbox_col_r = self.make_hbox_layout([h_sgn, h_dor], stretch=2)
+        hbox_col_rr = self.make_hbox_layout([h_sbl, h_pur],stretch=2)
+        vbox_l = self.make_vbox_layout([hbox_col_t, hbox_col_b, 
+                        hbox_col_r, hbox_col_rr],stretch=2)
         
         vbox_leg = self.make_vbox_layout([hline2, h_leg, vbox_l]) 
         
