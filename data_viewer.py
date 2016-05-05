@@ -60,6 +60,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
                 
             self.setGeometry(screen_res_native[0], screen_res_native[1], 
                     screen_res[0], screen_res[1])
+                    
 
         # Initial values:
         self.maskname = '-----'
@@ -258,7 +259,13 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         self.masksky_cb.setChecked(True)   # Temp; default: False
         self.connect(self.masksky_cb, SIGNAL('stateChanged(int)'), self.on_draw)
         
-        h_masksky = self.make_hbox_widget([self.masksky_cb], stretch=1)
+        #h_masksky = self.make_hbox_widget([self.masksky_cb], stretch=1)
+        
+        # Add quiescent lines:
+        self.quilines_cb = QCheckBox("Quiescent lines&")
+        self.quilines_cb.setChecked(False)
+        self.connect(self.quilines_cb, SIGNAL('stateChanged(int)'), self.on_draw)
+        h_masksky = self.make_hbox_widget([self.masksky_cb, self.quilines_cb], stretch=1)
         
         self.smooth_cb = QCheckBox("&Smooth")
         self.smooth_cb.setChecked(True)  # Temp; default: False
@@ -307,12 +314,20 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         h_yel = self.make_line_leg('[OIII]', 'yellow',line_lbl_wid = 30)
         h_gre = self.make_line_leg('[OII]', 'green')
         
+        h_pur = self.make_line_leg('MgB', 'purple', line_lbl_wid=30)
+        
+    
         hbox_col_t = self.make_hbox_layout([h_red, h_ora, h_mag],stretch=3)
         hbox_col_b = self.make_hbox_layout([h_tea, h_gre, h_yel],stretch=3)
-        vbox_l = self.make_vbox_layout([hbox_col_t, hbox_col_b],stretch=2)
+        hbox_col_r = self.make_hbox_layout([h_pur],stretch=3)
+        vbox_l = self.make_vbox_layout([hbox_col_t, hbox_col_b, hbox_col_r],stretch=2)
         
         vbox_leg = self.make_vbox_layout([hline2, h_leg, vbox_l]) 
-        #vbox_leg = self.make_vbox_layout([hline2, vbox_l]) 
+        
+        # hbox_col_t = self.make_hbox_layout([h_red, h_ora, h_mag],stretch=3)
+        # hbox_col_b = self.make_hbox_layout([h_tea, h_gre, h_yel],stretch=3)
+        # vbox_l = self.make_vbox_layout([hbox_col_t, hbox_col_b],stretch=2)
+        # vbox_leg = self.make_vbox_layout([hline2, vbox_l])
         
         #####################################
         # Extraction comments
@@ -748,10 +763,12 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
 ##########################################################################
 
 def main():
-    app = QApplication(sys.argv)
+    app = QApplication([sys.argv[0]])
     
     screen_rect = app.desktop().screenGeometry()
     width, height = screen_rect.width(), screen_rect.height()
+    
+            
     
     form = DataViewer(screen_res = [width, height])
     form.show()

@@ -233,7 +233,7 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.,
 
         plot_lines(ax2, self.z, 
                 np.array(range(np.shape(spec2d)[1])), spec2d_x, 
-                ls='-', flag_2d=True)
+                ls='-', flag_2d=True, quiescent_lines=self.quilines_cb.isChecked())
 
                 
         if spec1d_hdr is not None:        
@@ -649,7 +649,7 @@ def get_primary_y_pos(self, band):
     return prim_y_pos
     
     
-def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
+def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2., quiescent_lines=False):
     lines_lam0 = [6564.60, 4862.71, 
                 6585.27, 
                 4960.295, 5008.240, 
@@ -658,6 +658,16 @@ def plot_lines(ax, z, xarr, wavearr, ls='-', flag_2d=False, lw=2.):
     # Ha, Hb, NII, OIII, OIII, OII, SII, SII
     cs = ['red', 'darkturquoise', 'orange', 'yellow', 'yellow', 
             'green', 'green', 'magenta', 'magenta']
+            
+            
+    #
+    if quiescent_lines:
+        lines_q = [5178.1]
+        # MgB
+        cs_q = ['purple']
+        
+        lines_lam0.extend(lines_q)
+        cs.extend(cs_q)
 
     wav_del = np.average(wavearr[1:]-wavearr[:-1])
     x_del = np.average(xarr[1:]-xarr[:-1])
@@ -727,7 +737,7 @@ def plot_1d(self, gs, band, font_header, font_axes, labelpad,
         spec1d_errlo = spec1d_y-spec1d_err
         spec1d_errhi = spec1d_y+spec1d_err
         
-        plot_lines(ax,self.z, spec1d_x, spec1d_x, ls='-')
+        plot_lines(ax,self.z, spec1d_x, spec1d_x, ls='-', quiescent_lines=self.quilines_cb.isChecked())
         
         if self.masksky_cb.isChecked():
             wh_cont, wh_cont_sky = wh_skylines(spec1d_err, cutoff=cutoff)
