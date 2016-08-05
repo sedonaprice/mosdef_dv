@@ -40,7 +40,9 @@ if extra_1d is not None:
     if len(extra_1d_list) > 0:
         extra_1d = extra_1d_list[0]
     if extra_1d is not '':
-        extra_1d = '.'+extra_1d
+        extra_1d_filename = '.'+extra_1d
+    else:
+        extra_1d_filename = extra_1d
 else:
     extra_1d = ''
 ############################################################
@@ -256,7 +258,7 @@ def cat_struct():
         file_1d_base = obj_df.ix[i]['maskname']
         file_2d_base = obj_df.ix[i]['maskname']
         if np.int(obj_df.ix[i]['aper_no']) == 1:
-            file_1d_end = obj_df.ix[i]['primID']+extra_1d+'.1d.fits'
+            file_1d_end = obj_df.ix[i]['primID']+extra_1d_filename+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
             
             try:
@@ -264,7 +266,7 @@ def cat_struct():
             except:
                 objID = np.int64(obj_df.ix[i]['primID'][1:])
         else:
-            file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+extra_1d+'.1d.fits'
+            file_1d_end = obj_df.ix[i]['primID']+'.'+obj_df.ix[i]['aper_no']+extra_1d_filename+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
             
             # # Get identified objID if there is an entry in the master cat:

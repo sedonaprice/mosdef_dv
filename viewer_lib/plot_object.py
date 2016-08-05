@@ -554,7 +554,8 @@ def plot_detection(self, ax, ax2d, tdhst_cat, w, main_id, main_y_pos, prim_y_pos
         color_ind += 1
         if color_ind == len(colors):
             color_ind = 0
-        
+    
+    # Only appended stuff if plot_ind = True
     return color_ind, ser_ids, ser_cols, slit_ys
 
     
