@@ -44,6 +44,9 @@ class NavigationToolbar(NavigationToolbar):
 
 
 class DataViewer(QMainWindow, DV_Menu, DV_Layout):
+    """
+    MOSDEF DataViewer Calss to examine data reduction and extraction products.
+    """
     def __init__(self, parent=None, screen_res=None):
         QMainWindow.__init__(self, parent)
         
@@ -769,6 +772,9 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
 ##########################################################################
 
 def main():
+    """
+    Launch a MOSDEF DataViewer instance.
+    """
     app = QApplication([sys.argv[0]])
     
     screen_rect = app.desktop().screenGeometry()
