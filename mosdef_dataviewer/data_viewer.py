@@ -771,7 +771,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
 
 ##########################################################################
 
-def main():
+def launch_DataViewer():
     """
     Launch a MOSDEF DataViewer instance.
     """
@@ -788,5 +788,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    launch_DataViewer()
 

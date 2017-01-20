@@ -25,6 +25,10 @@ hostname = socket.gethostname()
 mbp = 'shp-mbp'
 pepper = 'pepper.astro.berkeley.edu'
 
+# Should set this from OS path
+data_dir = '../mosdef_dv_data'
+
+
 def get_tdhst_vers(hdr):
     catfile = hdr['CATALOG']
     
@@ -273,7 +277,6 @@ def read_0d_cat(vers='2.1'):
 
 
 def read_paths():
-    data_dir = 'mosdef_dv_data'
             
     filename = data_dir+'/mosdef_dv_paths.txt'
     if os.path.exists(filename):
@@ -307,7 +310,6 @@ def read_path(key):
         return None
 
 def write_paths(path_info):
-    data_dir = 'mosdef_dv_data'
     if not os.path.exists(data_dir):
         try:
             os.makedirs(data_dir)

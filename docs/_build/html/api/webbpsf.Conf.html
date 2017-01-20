@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Conf &#8212; MOSDEF DataViewer 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">MOSDEF DataViewer 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="conf">
+<h1>Conf<a class="headerlink" href="#conf" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="webbpsf.Conf">
+<em class="property">class </em><code class="descclassname">webbpsf.</code><code class="descname">Conf</code><a class="headerlink" href="#webbpsf.Conf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">astropy.config.configuration.ConfigNamespace</span></code></p>
+<p>Configuration parameters for <cite>webbpsf</cite>.</p>
+<p class="rubric">Attributes Summary</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#webbpsf.Conf.WEBBPSF_PATH" title="webbpsf.Conf.WEBBPSF_PATH"><code class="xref py py-obj docutils literal"><span class="pre">WEBBPSF_PATH</span></code></a></td>
+<td>Directory path to data files required for WebbPSF calculations, such as OPDs and filter transmissions.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#webbpsf.Conf.autoconfigure_logging" title="webbpsf.Conf.autoconfigure_logging"><code class="xref py py-obj docutils literal"><span class="pre">autoconfigure_logging</span></code></a></td>
+<td>Should WebbPSF configure logging for itself and POPPY? This adds handlers that report calculation progress and information</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#webbpsf.Conf.default_fov_arcsec" title="webbpsf.Conf.default_fov_arcsec"><code class="xref py py-obj docutils literal"><span class="pre">default_fov_arcsec</span></code></a></td>
+<td>Default field of view size, in arcseconds per side of the square</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#webbpsf.Conf.default_output_mode" title="webbpsf.Conf.default_output_mode"><code class="xref py py-obj docutils literal"><span class="pre">default_output_mode</span></code></a></td>
+<td>Should output include the oversampled PSF, a copy rebinned onto the integer detector spacing, or both? Options: &#8216;oversampled&#8217;,&#8217;detector&#8217;,&#8217;both&#8217;</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#webbpsf.Conf.default_oversampling" title="webbpsf.Conf.default_oversampling"><code class="xref py py-obj docutils literal"><span class="pre">default_oversampling</span></code></a></td>
+<td>Default oversampling factor: number of times more finely sampled than an integer pixel for the grid spacing in the PSF calculation.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#webbpsf.Conf.logging_filename" title="webbpsf.Conf.logging_filename"><code class="xref py py-obj docutils literal"><span class="pre">logging_filename</span></code></a></td>
+<td>Desired filename to save log messages to.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#webbpsf.Conf.logging_format_file" title="webbpsf.Conf.logging_format_file"><code class="xref py py-obj docutils literal"><span class="pre">logging_format_file</span></code></a></td>
+<td>Format for lines logged to a file.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#webbpsf.Conf.logging_format_screen" title="webbpsf.Conf.logging_format_screen"><code class="xref py py-obj docutils literal"><span class="pre">logging_format_screen</span></code></a></td>
+<td>Format for lines logged to the screen.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#webbpsf.Conf.logging_level" title="webbpsf.Conf.logging_level"><code class="xref py py-obj docutils literal"><span class="pre">logging_level</span></code></a></td>
+<td>Desired logging level for WebbPSF optical calculations.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes Documentation</p>
+<dl class="attribute">
+<dt id="webbpsf.Conf.WEBBPSF_PATH">
+<code class="descname">WEBBPSF_PATH</code><a class="headerlink" href="#webbpsf.Conf.WEBBPSF_PATH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory path to data files required for WebbPSF calculations, such as OPDs and filter transmissions. This will be overridden by the environment variable $WEBBPSF_PATH, if present.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.autoconfigure_logging">
+<code class="descname">autoconfigure_logging</code><a class="headerlink" href="#webbpsf.Conf.autoconfigure_logging" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should WebbPSF configure logging for itself and POPPY? This adds handlers that report calculation progress and information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.default_fov_arcsec">
+<code class="descname">default_fov_arcsec</code><a class="headerlink" href="#webbpsf.Conf.default_fov_arcsec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default field of view size, in arcseconds per side of the square</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.default_output_mode">
+<code class="descname">default_output_mode</code><a class="headerlink" href="#webbpsf.Conf.default_output_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should output include the oversampled PSF, a copy rebinned onto the integer detector spacing, or both? Options: &#8216;oversampled&#8217;,&#8217;detector&#8217;,&#8217;both&#8217;</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.default_oversampling">
+<code class="descname">default_oversampling</code><a class="headerlink" href="#webbpsf.Conf.default_oversampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default oversampling factor: number of times more finely sampled than an integer pixel for the grid spacing in the PSF calculation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.logging_filename">
+<code class="descname">logging_filename</code><a class="headerlink" href="#webbpsf.Conf.logging_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Desired filename to save log messages to.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.logging_format_file">
+<code class="descname">logging_format_file</code><a class="headerlink" href="#webbpsf.Conf.logging_format_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format for lines logged to a file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.logging_format_screen">
+<code class="descname">logging_format_screen</code><a class="headerlink" href="#webbpsf.Conf.logging_format_screen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format for lines logged to the screen.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webbpsf.Conf.logging_level">
+<code class="descname">logging_level</code><a class="headerlink" href="#webbpsf.Conf.logging_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Desired logging level for WebbPSF optical calculations.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/webbpsf.Conf.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">MOSDEF DataViewer 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Sedona Price.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>measure_strehl &#8212; MOSDEF DataViewer 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">MOSDEF DataViewer 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="measure-strehl">
+<h1>measure_strehl<a class="headerlink" href="#measure-strehl" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="webbpsf.measure_strehl">
+<code class="descclassname">webbpsf.</code><code class="descname">measure_strehl</code><span class="sig-paren">(</span><em>HDUlist_or_filename=None</em>, <em>ext=0</em>, <em>slice=0</em>, <em>center=None</em>, <em>display=True</em>, <em>verbose=True</em>, <em>cache_perfect=False</em><span class="sig-paren">)</span><a class="headerlink" href="#webbpsf.measure_strehl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the Strehl ratio for a PSF.</p>
+<p>This requires computing a simulated PSF with the same
+properties as the one under analysis.</p>
+<p>Note that this calculation will not be very accurate unless both PSFs are well sampled,
+preferably several times better than Nyquist. See
+<a class="reference external" href="http://adsabs.harvard.edu/abs/2004SPIE.5490..504R">Roberts et al. 2004 SPIE 5490</a>
+for a discussion of the various possible pitfalls when calculating Strehl ratios.</p>
+<p>WARNING: This routine attempts to infer how to calculate a perfect reference
+PSF based on FITS header contents. It will likely work for simple direct imaging
+cases with WebbPSF but will not work (yet) for more complicated cases such as
+coronagraphy, anything with image or pupil masks, etc. Code contributions to add
+such cases are welcomed.</p>
+<dl class="docutils">
+<dt>HDUlist_or_filename</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">string</span><dd>Either a fits.HDUList object or a filename of a FITS file on disk</dd>
+<dt>ext</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd>Extension in that FITS file</dd>
+<dt>slice</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span><dd>If that extension is a 3D datacube, which slice (plane) of that datacube to use</dd>
+<dt>center</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span><dd>center to compute around.  Default is image center. If the center is on the
+crosshairs between four pixels, then the mean of those four pixels is used.
+Otherwise, if the center is in a single pixel, then that pixel is used.</dd>
+<dt>verbose, display</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd>control whether to print the results or display plots on screen.</dd>
+<dt>cache_perfect</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd>use caching for perfect images? greatly speeds up multiple calcs w/ same config</dd>
+</dl>
+<dl class="docutils">
+<dt>strehl</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd>Strehl ratio as a floating point number between 0.0 - 1.0</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/webbpsf.measure_strehl.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">MOSDEF DataViewer 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Sedona Price.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

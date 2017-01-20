@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DataViewer &#8212; MOSDEF DataViewer 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="launch_DataViewer" href="mosdef_dataviewer.launch_DataViewer.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mosdef_dataviewer.launch_DataViewer.html" title="launch_DataViewer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">MOSDEF DataViewer 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dataviewer">
+<h1>DataViewer<a class="headerlink" href="#dataviewer" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="mosdef_dataviewer.DataViewer">
+<em class="property">class </em><code class="descclassname">mosdef_dataviewer.</code><code class="descname">DataViewer</code><span class="sig-paren">(</span><em>parent=None</em>, <em>screen_res=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt4.QtGui.QMainWindow</span></code>, <code class="xref py py-class docutils literal"><span class="pre">mosdef_dataviewer.viewer_lib.menu.DV_Menu</span></code>, <code class="xref py py-class docutils literal"><span class="pre">mosdef_dataviewer.viewer_lib.layout.DV_Layout</span></code></p>
+<p>MOSDEF DataViewer Calss to examine data reduction and extraction products.</p>
+<p class="rubric">Methods Summary</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.create_main_frame" title="mosdef_dataviewer.DataViewer.create_main_frame"><code class="xref py py-obj docutils literal"><span class="pre">create_main_frame</span></code></a>([screen_res])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.fromPrimAper" title="mosdef_dataviewer.DataViewer.fromPrimAper"><code class="xref py py-obj docutils literal"><span class="pre">fromPrimAper</span></code></a>(primaper_str)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.get_any_2d_hdr" title="mosdef_dataviewer.DataViewer.get_any_2d_hdr"><code class="xref py py-obj docutils literal"><span class="pre">get_any_2d_hdr</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.initComboBox" title="mosdef_dataviewer.DataViewer.initComboBox"><code class="xref py py-obj docutils literal"><span class="pre">initComboBox</span></code></a>(list)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.make_toolbar_shortcut" title="mosdef_dataviewer.DataViewer.make_toolbar_shortcut"><code class="xref py py-obj docutils literal"><span class="pre">make_toolbar_shortcut</span></code></a>(name,&nbsp;shortcut,&nbsp;slot)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.next_match" title="mosdef_dataviewer.DataViewer.next_match"><code class="xref py py-obj docutils literal"><span class="pre">next_match</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.onSelectMatch" title="mosdef_dataviewer.DataViewer.onSelectMatch"><code class="xref py py-obj docutils literal"><span class="pre">onSelectMatch</span></code></a>(text)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_db_options" title="mosdef_dataviewer.DataViewer.on_db_options"><code class="xref py py-obj docutils literal"><span class="pre">on_db_options</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_draw" title="mosdef_dataviewer.DataViewer.on_draw"><code class="xref py py-obj docutils literal"><span class="pre">on_draw</span></code></a>()</td>
+<td>Redraws the figure</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_mask_id_button" title="mosdef_dataviewer.DataViewer.on_mask_id_button"><code class="xref py py-obj docutils literal"><span class="pre">on_mask_id_button</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_mask_id_query" title="mosdef_dataviewer.DataViewer.on_mask_id_query"><code class="xref py py-obj docutils literal"><span class="pre">on_mask_id_query</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_mask_prim_aper_query" title="mosdef_dataviewer.DataViewer.on_mask_prim_aper_query"><code class="xref py py-obj docutils literal"><span class="pre">on_mask_prim_aper_query</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_mask_query" title="mosdef_dataviewer.DataViewer.on_mask_query"><code class="xref py py-obj docutils literal"><span class="pre">on_mask_query</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.on_z_update" title="mosdef_dataviewer.DataViewer.on_z_update"><code class="xref py py-obj docutils literal"><span class="pre">on_z_update</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.prev_match" title="mosdef_dataviewer.DataViewer.prev_match"><code class="xref py py-obj docutils literal"><span class="pre">prev_match</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.set_initial_z" title="mosdef_dataviewer.DataViewer.set_initial_z"><code class="xref py py-obj docutils literal"><span class="pre">set_initial_z</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.set_z_values" title="mosdef_dataviewer.DataViewer.set_z_values"><code class="xref py py-obj docutils literal"><span class="pre">set_z_values</span></code></a>(spec2d_hdr[,&nbsp;aper_no])</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.toPrimAper" title="mosdef_dataviewer.DataViewer.toPrimAper"><code class="xref py py-obj docutils literal"><span class="pre">toPrimAper</span></code></a>(primID,&nbsp;aper_no[,&nbsp;obj_type])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.toolbar_home" title="mosdef_dataviewer.DataViewer.toolbar_home"><code class="xref py py-obj docutils literal"><span class="pre">toolbar_home</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.toolbar_pan" title="mosdef_dataviewer.DataViewer.toolbar_pan"><code class="xref py py-obj docutils literal"><span class="pre">toolbar_pan</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#mosdef_dataviewer.DataViewer.toolbar_zoom" title="mosdef_dataviewer.DataViewer.toolbar_zoom"><code class="xref py py-obj docutils literal"><span class="pre">toolbar_zoom</span></code></a>()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods Documentation</p>
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.create_main_frame">
+<code class="descname">create_main_frame</code><span class="sig-paren">(</span><em>screen_res=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.create_main_frame" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.fromPrimAper">
+<code class="descname">fromPrimAper</code><span class="sig-paren">(</span><em>primaper_str</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.fromPrimAper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.get_any_2d_hdr">
+<code class="descname">get_any_2d_hdr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.get_any_2d_hdr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.initComboBox">
+<code class="descname">initComboBox</code><span class="sig-paren">(</span><em>list</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.initComboBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.make_toolbar_shortcut">
+<code class="descname">make_toolbar_shortcut</code><span class="sig-paren">(</span><em>name</em>, <em>shortcut</em>, <em>slot</em>, <em>signal='triggered()'</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.make_toolbar_shortcut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.next_match">
+<code class="descname">next_match</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.next_match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.onSelectMatch">
+<code class="descname">onSelectMatch</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.onSelectMatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_db_options">
+<code class="descname">on_db_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_db_options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_draw">
+<code class="descname">on_draw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redraws the figure</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_mask_id_button">
+<code class="descname">on_mask_id_button</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_mask_id_button" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_mask_id_query">
+<code class="descname">on_mask_id_query</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_mask_id_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_mask_prim_aper_query">
+<code class="descname">on_mask_prim_aper_query</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_mask_prim_aper_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_mask_query">
+<code class="descname">on_mask_query</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_mask_query" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.on_z_update">
+<code class="descname">on_z_update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.on_z_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.prev_match">
+<code class="descname">prev_match</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.prev_match" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.set_initial_z">
+<code class="descname">set_initial_z</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.set_initial_z" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.set_z_values">
+<code class="descname">set_z_values</code><span class="sig-paren">(</span><em>spec2d_hdr</em>, <em>aper_no=1</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.set_z_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.toPrimAper">
+<code class="descname">toPrimAper</code><span class="sig-paren">(</span><em>primID</em>, <em>aper_no</em>, <em>obj_type='G'</em><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.toPrimAper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.toolbar_home">
+<code class="descname">toolbar_home</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.toolbar_home" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.toolbar_pan">
+<code class="descname">toolbar_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.toolbar_pan" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="mosdef_dataviewer.DataViewer.toolbar_zoom">
+<code class="descname">toolbar_zoom</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mosdef_dataviewer.DataViewer.toolbar_zoom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="mosdef_dataviewer.launch_DataViewer.html"
+                        title="previous chapter">launch_DataViewer</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/api/mosdef_dataviewer.DataViewer.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mosdef_dataviewer.launch_DataViewer.html" title="launch_DataViewer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">MOSDEF DataViewer 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Sedona Price.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>
