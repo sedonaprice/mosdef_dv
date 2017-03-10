@@ -79,5 +79,5 @@ Easy way to install the dependencies (using Homebrew, alternates also exist for 
 - brew install pyqt
 - brew install GEOS
 - pip install pyregion
-- pip install Shapley
+- pip install Shapely
 
