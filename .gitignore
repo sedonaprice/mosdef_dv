@@ -7,3 +7,5 @@ conflicts*
 *.app
 *.app.tar.gz
 mosdef_logo_firey.pdf
+
+mosdef_dataviewer/mosdef_dv_launch_pepper.sh
