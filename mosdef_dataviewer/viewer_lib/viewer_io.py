@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import re
 import gc
+#from astropy.io import ascii as _ascii
 
 # from mosdef_io import read_data
 # try:   
@@ -364,30 +365,22 @@ def read_bmep_redshift_slim(mask, primID, aper_no):
     filename = path+'/00_redshift_catalog_slim_bmep.txt'
     
     if os.path.exists(filename):
- 
-        redshift_infofits = np.genfromtxt(filename, dtype=None,
-                    names=['maskname', 'primID', 'aper_no', 'z1', 'n_lines1',
-                            'z2', 'n_lines2'])
-                            
-        redshift_info = pd.DataFrame(redshift_infofits)
         
-        # try:
-        # # Has a match
-        wh_mask = np.where(redshift_info['maskname'] == mask)[0]
-        wh_prim = np.where(redshift_info['primID'] == np.int64(primID))[0]
-        wh_aper = np.where(redshift_info['aper_no'] == np.int64(aper_no))[0]
+        names = ['maskname', 'primID', 'aper_no', 'z1', 'n_lines1', 'z2', 'n_lines2']
+        redshift_info = pd.read_csv(filename, sep=' ', 
+                            names=names, dtype=str, 
+                            skipinitialspace=True)
         
-        #print "wh_mask, wh_prim, wh_aper=", wh_mask, wh_prim, wh_aper
         
-        wh_1 = np.intersect1d(wh_prim, wh_mask)
-        #print "wh_1=", wh_1
-        wh = np.intersect1d(wh_1, wh_aper)
+        # Has a match
+        wh = np.where((redshift_info['maskname'].str.strip() == mask) & \
+                    (redshift_info['primID'].str.strip() == str(primID)) & \
+                    (redshift_info['aper_no'].str.strip() == str(aper_no)))[0]
         
         if len(wh)>0:
             wh = wh[0]
-            #print "wh=", wh
-    
-            return redshift_info['z1'][wh]
+            
+            return np.float(redshift_info['z1'][wh])
         else:
             return -1.
         

@@ -228,8 +228,8 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.,
         range_spec = spec2d[np.isfinite(spec2d)].copy()
         range_spec.sort()
         ax2.imshow(spec2d, cmap=cm.gray, \
-              vmin = range_spec[frac_spec*len(range_spec)], \
-              vmax = range_spec[(1.-frac_spec)*len(range_spec)], \
+              vmin = range_spec[np.int(np.round(frac_spec*len(range_spec)))], \
+              vmax = range_spec[np.int(np.round((1.-frac_spec)*len(range_spec)))], \
               interpolation='None', origin='lower')
               
         ax2.format_coord = make_format_ax2(ax2, spec2d_hdr, left_inds[1])
@@ -265,8 +265,8 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.,
         range_spec = pstamp[np.isfinite(pstamp)].copy()
         range_spec.sort()
         ax3.imshow(pstamp, cmap=cm.gray, \
-                vmin = range_spec[frac_pstamp*len(range_spec)], \
-                vmax = range_spec[(1.-frac_pstamp)*len(range_spec)], \
+                vmin = range_spec[np.int(np.round(frac_pstamp*len(range_spec)))], \
+                vmax = range_spec[np.int(np.round((1.-frac_pstamp)*len(range_spec)))], \
                 interpolation='None', origin='lower')
             
         # Angle btween 3DHST and MOSFIRE slit PA- 
@@ -476,7 +476,7 @@ def plot_detections_in_stamp(self, ax3, ax2d, tdhst_cat, w,  main_id, main_y_pos
         ser_ids_int = np.array(ser_ids_sort,dtype=np.int64)
         wh_tmp = np.where(ser_ids_int == self.obj_id)[0]
         if len(wh_tmp)>0:
-            self.obj_id_color = ser_cols_sort[wh_tmp]
+            self.obj_id_color = ser_cols_sort[wh_tmp[0]]
         else:
             self.obj_id_color='black'
             
