@@ -592,6 +592,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         
     def fromPrimAper(self, primaper_str):
         splt = re.split(r'\.', str(primaper_str).strip())
+        #print "splt=", splt
         if len(splt) == 1:
             if splt[0][0] == 'S':
                 splt_tmp = splt[0][1:]
@@ -750,6 +751,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         i = 0
         while flag == 0:
             band = bands[i]
+            
             try:
                 spec2d, spec2d_hdr = read_spec2d(self.query_info['spec2d_file_'+band.lower()])
 
@@ -758,6 +760,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
                 else:
                     i += 1
             except:
+                
                 i += 1
                 
                 if i >= len(bands):

@@ -26,7 +26,8 @@ mbp = 'shp-mbp'
 pepper = 'pepper.astro.berkeley.edu'
 
 # Should set this from OS path
-data_dir = '../mosdef_dv_data'
+#data_dir = '../mosdef_dv_data'
+data_dir = 'mosdef_dv_data'
 
 
 def get_tdhst_vers(hdr):
@@ -288,6 +289,11 @@ def read_paths():
         for i in xrange(len(df)):
             if df['path'][i] == 'not_set':
                 df['path'][i] = ''
+                
+            else:
+                # Drop trailing / if it's there:
+                if df['path'][i][-1] == '/':
+                    df['path'][i] = df['path'][i][0:-1]
                 
         return df
         

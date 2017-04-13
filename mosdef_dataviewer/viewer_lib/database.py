@@ -67,13 +67,14 @@ def maskname_interp(maskname):
     #   FFZ_MM  : FF = field code (string), Z = redshift (int), MM = mask (??)
 
 
-    if len(maskname) != 6:
-        raise Exception("Maskname has wrong length!")
+    # if len(maskname) != 6:
+    #     print "maskname=", maskname
+    #     raise Exception("Maskname has wrong length!")
 
     # Checked string is proper length
     ff = maskname[0:2]
     z = maskname[2]
-    mm = maskname[4:6]
+    mm = maskname[4:]  #[4:6]
 
     field = field_short2long(ff)
     redshift = z # keep as a string: for filenames  # int(z) 
@@ -237,8 +238,12 @@ def cat_struct():
         # Get field:
         field, z, mask = maskname_interp(obj_df.ix[i]['maskname'])
         if field != field_cur:
-            mosdef_parent_cat = read_parent_cat(vers='4.1', field=field)
-            field_cur = field
+            try:
+                mosdef_parent_cat = read_parent_cat(vers='4.1', field=field)
+                field_cur = field
+            except:
+                mosdef_parent_cat = read_parent_cat(vers='2.1', field=field)
+                field_cur = field
             
         ###############################
         # Get primary id number in integer:
