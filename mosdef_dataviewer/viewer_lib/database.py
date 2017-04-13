@@ -45,6 +45,8 @@ if extra_1d is not None:
         extra_1d_filename = extra_1d
 else:
     extra_1d = ''
+    extra_1d_filename = extra_1d
+    
 ############################################################
 def field_short2long(field):
     return {
