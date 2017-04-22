@@ -61,18 +61,15 @@ def maskname_interp(maskname):
         redshift (2 = redshift 2), and mask (?) (03 = mask 3???)
         Output: [FIELD (full name, str), Z (str), MASK (str)]
     """
-
+    
     # Input string format:
     #   FFZ_MM  : FF = field code (string), Z = redshift (int), MM = mask (??)
-
-
-    if len(maskname) != 6:
-        raise Exception("Maskname has wrong length!")
-
+    
+    
     # Checked string is proper length
     ff = maskname[0:2]
     z = maskname[2]
-    mm = maskname[4:6]
+    mm = maskname[4:]
 
     field = field_short2long(ff)
     redshift = z # keep as a string: for filenames  # int(z) 
