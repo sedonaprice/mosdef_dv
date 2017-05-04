@@ -10,7 +10,7 @@
 
 	
 ##### Instructions:
-######Install:
+###### Install:
 Navigate to the directory where you'd like to install the MOSDEF data viewer.
 
 Download code from git repo using the following:
@@ -19,7 +19,7 @@ Download code from git repo using the following:
 
 (Already installed on pepper.)
 
-######Setup:
+###### Setup:
 Include the following in your system environment variables (ie in ~/.bashrc)
 
 	alias mosdef_dv='python /path/to/MOSDEF_DV/data_viewer.py'
@@ -29,7 +29,7 @@ On pepper, this should be
 	alias mosdef_dv='python /Users/sedona/software_public/mosdef_dataviewer/mosdef_dataviewer/data_viewer.py'
 
 
-######Launch program:
+###### Launch program:
 Navigate to the directory where you would like to run the DV. The program will automatically create the folder "mosdef_dv_data" (if it doesn't already exist), which holds the necessary DB and path information.
 __You must always run MOSDEF DV from this directory to keep using the current DB and 
 previously set paths.__
@@ -38,7 +38,7 @@ Within this directory, run:
 
 	mosdef_dv
 
-######Path setup:
+###### Path setup:
 For the first run, or if the paths are updated, you will need to set up the dataviewer paths ("Set paths" button on lower right) to point to correct directories.
 
 On pepper, these are similar to:
