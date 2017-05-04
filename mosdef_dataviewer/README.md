@@ -26,7 +26,7 @@ Include the following in your system environment variables (ie in ~/.bashrc)
 
 On pepper, this should be 
 	
-	alias mosdef_dv='python /Users/sedona/software/mosdef_dataviewer/mosdef_dataviewer/data_viewer.py'
+	alias mosdef_dv='python /Users/sedona/software_public/mosdef_dataviewer/mosdef_dataviewer/data_viewer.py'
 
 
 ######Launch program:
