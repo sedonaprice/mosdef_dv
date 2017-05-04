@@ -32,20 +32,22 @@ def db_delete(dbname):
     return None
     
     
-## Extra part of 1D filenames
-#extra_1d = 'ell'
-extra_1d = read_path('EXTRA_1D_END')
-if extra_1d is not None:
-    extra_1d_list = extra_1d.split()
-    if len(extra_1d_list) > 0:
-        extra_1d = extra_1d_list[0]
-    if extra_1d is not '':
-        extra_1d_filename = '.'+extra_1d
+def read_extra1d_filename():
+    ## Extra part of 1D filenames
+    #extra_1d = 'ell'
+    extra_1d = read_path('EXTRA_1D_END')
+    if extra_1d is not None:
+        extra_1d_list = extra_1d.split()
+        if len(extra_1d_list) > 0:
+            extra_1d = extra_1d_list[0]
+        if extra_1d is not '':
+            extra_1d_filename = '.'+extra_1d
+        else:
+            extra_1d_filename = extra_1d
     else:
+        extra_1d = ''
         extra_1d_filename = extra_1d
-else:
-    extra_1d = ''
-    extra_1d_filename = extra_1d
+    return extra_1d_filename
     
 ############################################################
 def field_short2long(field):
@@ -264,6 +266,7 @@ def cat_struct():
         # Prepare filenames:
         file_1d_base = obj_df.ix[i]['maskname']
         file_2d_base = obj_df.ix[i]['maskname']
+        extra_1d_filename = read_extra1d_filename()
         if np.int(obj_df.ix[i]['aper_no']) == 1:
             file_1d_end = obj_df.ix[i]['primID']+extra_1d_filename+'.1d.fits'
             file_2d_end = obj_df.ix[i]['primID']+'.2d.fits'
