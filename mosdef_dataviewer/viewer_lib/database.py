@@ -130,81 +130,87 @@ def cat_struct():
     all_df = pd.DataFrame({})
     for f in files:
         splt = re.split(r'\.', f.strip())
-        try:
-            if splt[-3] == extra_1d:
-                norm_len = 6
-            else:
-                norm_len = 5
-        except:
-            # Only happens for random files.
-            norm_len = 5
-        if len(splt) == norm_len:
-            # Format: mask.band.primID.2d.fits
-            mask, band, prim_id = splt[0:3]
-            aper_no = 1
-            dfNew = pd.DataFrame({'maskname': mask, 
-                                'band': band,
-                                'primID': prim_id,
-                                'aper_no':aper_no},
-                                index=[0])
-            all_df = all_df.append(dfNew, ignore_index=True)
-            
-        elif len(splt) == norm_len+1:
-            # Format: mask.band.primID.aper_no.2d.fits
-            mask, band, prim_id, aper_no = splt[0:4]
-            
-            # If it's a star: no serendip objects, aper_no = 1
-            if prim_id[0] == 'S':
-                aper_no = 1
-            
-            dfNew = pd.DataFrame({'maskname': mask, 
-                                'band': band,
-                                'primID': prim_id,
-                                'aper_no':aper_no},
-                                index=[0])
-            all_df = all_df.append(dfNew, ignore_index=True)
-            
-        else:
+        if splt[-1].lower() != 'fits':
             pass
+        else:
+            try:
+                if splt[-3] == extra_1d:
+                    norm_len = 6
+                else:
+                    norm_len = 5
+            except:
+                # Only happens for random files.
+                norm_len = 5
+            if len(splt) == norm_len:
+                # Format: mask.band.primID.2d.fits
+                mask, band, prim_id = splt[0:3]
+                aper_no = 1
+                dfNew = pd.DataFrame({'maskname': mask, 
+                                    'band': band,
+                                    'primID': prim_id,
+                                    'aper_no':aper_no},
+                                    index=[0])
+                all_df = all_df.append(dfNew, ignore_index=True)
+            
+            elif len(splt) == norm_len+1:
+                # Format: mask.band.primID.aper_no.2d.fits
+                mask, band, prim_id, aper_no = splt[0:4]
+            
+                # If it's a star: no serendip objects, aper_no = 1
+                if prim_id[0].upper() == 'S':
+                    aper_no = 1
+            
+                dfNew = pd.DataFrame({'maskname': mask, 
+                                    'band': band,
+                                    'primID': prim_id,
+                                    'aper_no':aper_no},
+                                    index=[0])
+                all_df = all_df.append(dfNew, ignore_index=True)
+            
+            else:
+                pass
 
     for f in files_2d:
         splt = re.split(r'\.', f.strip())
-        try:
-            if splt[-3] == extra_1d:
-                norm_len = 6
-            else:
-                norm_len = 5
-        except:
-            # Only happens for random files.
-            norm_len = 5
-        if len(splt) == norm_len:
-            # Format: mask.band.primID.2d.fits
-            mask, band, prim_id = splt[0:3]
-            aper_no = 1
-            dfNew = pd.DataFrame({'maskname': mask, 
-                                'band': band,
-                                'primID': prim_id,
-                                'aper_no':aper_no},
-                                index=[0])
-            all_df = all_df.append(dfNew, ignore_index=True)
-            
-        elif len(splt) == norm_len+1:
-            # Format: mask.band.primID.aper_no.2d.fits
-            mask, band, prim_id, aper_no = splt[0:4]
-            
-            # If it's a star: no serendip objects, aper_no = 1
-            if prim_id[0] == 'S':
-                aper_no = 1
-            
-            dfNew = pd.DataFrame({'maskname': mask, 
-                                'band': band,
-                                'primID': prim_id,
-                                'aper_no':aper_no},
-                                index=[0])
-            all_df = all_df.append(dfNew, ignore_index=True)
-	    
-        else:
+        if splt[-1].lower() != 'fits':
             pass
+        else:
+            try:
+                if splt[-3] == extra_1d:
+                    norm_len = 6
+                else:
+                    norm_len = 5
+            except:
+                # Only happens for random files.
+                norm_len = 5
+            if len(splt) == norm_len:
+                # Format: mask.band.primID.2d.fits
+                mask, band, prim_id = splt[0:3]
+                aper_no = 1
+                dfNew = pd.DataFrame({'maskname': mask, 
+                                    'band': band,
+                                    'primID': prim_id,
+                                    'aper_no':aper_no},
+                                    index=[0])
+                all_df = all_df.append(dfNew, ignore_index=True)
+            
+            elif len(splt) == norm_len+1:
+                # Format: mask.band.primID.aper_no.2d.fits
+                mask, band, prim_id, aper_no = splt[0:4]
+            
+                # If it's a star: no serendip objects, aper_no = 1
+                if prim_id[0] == 'S':
+                    aper_no = 1
+            
+                dfNew = pd.DataFrame({'maskname': mask, 
+                                    'band': band,
+                                    'primID': prim_id,
+                                    'aper_no':aper_no},
+                                    index=[0])
+                all_df = all_df.append(dfNew, ignore_index=True)
+	    
+            else:
+                pass
 
     # DF containing unique objects:
     obj_df= all_df[['maskname','primID','aper_no']].copy()
@@ -238,7 +244,16 @@ def cat_struct():
         # Open MOSDEF parent catalog to try to get objID for objects that are not primary
         #mosdef_0d_cat = read_0d_cat()
         # Get field:
-        field, z, mask = maskname_interp(obj_df.ix[i]['maskname'])
+        try:
+            field, z, mask = maskname_interp(obj_df.ix[i]['maskname'])
+        except:
+            print "failed!"
+            print obj_df.ix[i]['maskname']
+            print obj_df.ix[i]['band']
+            print obj_df.ix[i]['primID']
+            print obj_df.ix[i]['aper_no']
+            raise ValueError
+            
         if field != field_cur:
             try:
                 mosdef_parent_cat = read_parent_cat(vers='4.1', field=field)
