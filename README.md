@@ -82,4 +82,4 @@ Easy way to install the dependencies (using Homebrew, alternates also exist for 
 - pip install Shapely
 
 ##### License
-Licensed under the MIT license. See LICENSE.rst
+Licensed under the MIT license. See LICENSE

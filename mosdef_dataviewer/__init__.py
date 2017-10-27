@@ -1,4 +1,4 @@
-# Licensed under the MIT license. See LICENSE.rst
+# Licensed under the MIT license. See LICENSE
 """
 MOSDEF DataViewer
 -----------------
