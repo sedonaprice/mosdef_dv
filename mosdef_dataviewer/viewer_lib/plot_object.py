@@ -1,3 +1,7 @@
+# ###################
+# Licensed under the MIT license. See LICENSE.rst
+# ###################
+
 ###
 
 """

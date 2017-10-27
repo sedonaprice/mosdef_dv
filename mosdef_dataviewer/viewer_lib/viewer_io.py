@@ -1,3 +1,7 @@
+# ###################
+# Licensed under the MIT license. See LICENSE.rst
+# ###################
+
 ###
 # MOSDEF data viewer--
 #           viewer_io.py:

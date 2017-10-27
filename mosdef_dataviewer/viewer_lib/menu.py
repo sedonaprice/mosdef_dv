@@ -1,3 +1,7 @@
+# ###################
+# Licensed under the MIT license. See LICENSE.rst
+# ###################
+
 import sys, os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *

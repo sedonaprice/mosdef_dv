@@ -1,3 +1,7 @@
+# ###################
+# Licensed under the MIT license. See LICENSE.rst
+# ###################
+
 # mosdef/
 #   kinematics/line_2d_model/extra_progs.py
 # Module to hold extra programs for 2d line modeling,
