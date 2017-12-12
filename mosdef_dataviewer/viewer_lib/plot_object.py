@@ -13,6 +13,8 @@ Written:
 
 """
 
+from __future__ import print_function
+
 import matplotlib.pyplot as plt
 import re
 
@@ -36,9 +38,9 @@ try:
     from shapely.geometry import Polygon, Point
     shapely_installed = True
 except:
-    print "*******************************************"
-    print "* Python package 'shapely' not installed. *"
-    print "*******************************************"
+    print("*******************************************")
+    print("* Python package 'shapely' not installed. *")
+    print("*******************************************")
     shapely_installed = False
     
 frac_pstamp = 0.05
@@ -280,8 +282,8 @@ def plotBand(self, gs_main, pos=0, band='K', cutoff=3.,
                     pstamp_hdr=pstamp_hdr, vers=tdhst_vers)   # Decimal_degrees
         
         if message:        
-            print 'Mask PA=', spec2d_hdr['PA']            
-            print angle
+            print('Mask PA={}'.format(spec2d_hdr['PA'])) 
+            print(angle)
           
         # Setup values     
         # Assume angle already is slit angle 
@@ -641,7 +643,7 @@ def is_in_region(corners, px, py):
             return False
       
 def get_primary_y_pos(self, band):
-    query_str = "maskname = '%s' AND primaryID = '%s' AND aperture_no = %s" % (self.maskname, self.primID, 1)
+    query_str = "maskname = '{}' AND primaryID = '{}' AND aperture_no = {}".format(self.maskname, self.primID, 1)
     query = query_db(query_str)
     
     if not type(query) == type(None):
@@ -927,5 +929,5 @@ def make_format_ax2(ax, hdr, start_ind):
         lamdelt = hdr['cdelt1']
         lam0 = hdr['crval1'] - ((hdr['crpix1']-1)*hdr['cdelt1']) + (start_ind)*hdr['cdelt1']
         wave = (lam0 + lamdelt*x)/1.e4
-        return 'wave=%1.5f [um]    x=%1.5f   x_orig=%1.5f   y=%1.5f' % (wave, x, x+start_ind, y)
+        return 'wave={:1.5f} [um]    x={:1.5f}   x_orig={:1.5f}   y={:1.5f}'.format(wave, x, x+start_ind, y)
     return format_coord

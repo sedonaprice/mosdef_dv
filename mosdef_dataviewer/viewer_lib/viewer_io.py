@@ -8,6 +8,8 @@
 #               provide functions to read in data.
 ###
 
+from __future__ import print_function
+
 from astropy.io import fits
 import os
 import numpy as np
@@ -322,13 +324,13 @@ def write_paths(path_info):
         try:
             os.makedirs(data_dir)
         except:
-            print 'Cannot create directory '+data_dir+' under current working directory.'
+            print('Cannot create directory {} under current working directory.'.format(data_dir))
             raise
 
     filename = data_dir+'/mosdef_dv_paths.txt'
 
     if os.path.exists(filename):
-        sys_cmd = 'rm %s' % filename
+        sys_cmd = 'rm {}'.format(filename)
         os.system(sys_cmd)
         
     f = open(filename, 'w')

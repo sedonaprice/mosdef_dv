@@ -8,6 +8,7 @@
 #                   and query it.
 ###
 
+from __future__ import print_function
 
 import sqlite3
 import os.path
@@ -30,7 +31,7 @@ def db_exist(dbname):
     return exist
 
 def db_delete(dbname):
-    sys_cmd = 'rm %s' % dbname
+    sys_cmd = 'rm {}'.format(dbname)
     os.system(sys_cmd)
     return None
     
@@ -250,11 +251,11 @@ def cat_struct():
         try:
             field, z, mask = maskname_interp(obj_df.ix[i]['maskname'])
         except:
-            print "failed!"
-            print obj_df.ix[i]['maskname']
-            print obj_df.ix[i]['band']
-            print obj_df.ix[i]['primID']
-            print obj_df.ix[i]['aper_no']
+            print("failed!")
+            print(obj_df.ix[i]['maskname'])
+            print(obj_df.ix[i]['band'])
+            print(obj_df.ix[i]['primID'])
+            print(obj_df.ix[i]['aper_no'])
             raise ValueError
             
         if field != field_cur:
@@ -328,7 +329,7 @@ def cat_struct():
             data, data_err, light_profile, hdr = read_spec1d(files_1d[mm])
             if hdr is not None:
                 tdhst_vers = get_tdhst_vers(hdr)
-                print "maskname, id=", obj_df.ix[i]['maskname'], prim_id_name
+                print("maskname={}, id={}".format(obj_df.ix[i]['maskname'], prim_id_name))
                 
         
         # Get match from parent cat for v2, v4 ids:
@@ -438,7 +439,7 @@ def write_cat_db():
     #       'spec1d_file_y', 'spec2d_file_y', \
     #       'hst_file']
     collname = 'catalog'
-    sql_cmd = """CREATE TABLE IF NOT EXISTS %s 
+    sql_cmd = """CREATE TABLE IF NOT EXISTS {} 
                 (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                 maskname TEXT, objID INT, primaryID INT, aperture_no INT, 
                 primaryIDv2 INT, primaryIDv4 INT, 
@@ -449,7 +450,7 @@ def write_cat_db():
                 spec1d_file_h TEXT, spec2d_file_h TEXT,
                 spec1d_file_j TEXT, spec2d_file_j TEXT,
                 spec1d_file_y TEXT, spec2d_file_y TEXT,
-                hst_file TEXT)""" % collname
+                hst_file TEXT)""".format(collname)
 
 
     cursor.execute(sql_cmd)
@@ -478,7 +479,7 @@ def write_cat_db():
         strdat = str(dat)
 
 
-        sql_cmd = "INSERT INTO %s" % collname
+        sql_cmd = "INSERT INTO {}".format(collname)
         sql_cmd = (sql_cmd +  "(maskname, objID, primaryID, aperture_no, " +
                 "primaryIDv2, primaryIDv4, " +
                 "field, " + 
@@ -528,16 +529,16 @@ def query_db(query_string):
             # Actual query string
             for i,t in enumerate(tables):
                 if i == 0:
-                    sql_cmd = sql_cmd + """SELECT * FROM %s WHERE %s """ %(t, query_string)
+                    sql_cmd = sql_cmd + """SELECT * FROM {} WHERE {} """.format(t, query_string)
                 if i>0:
-                    sql_cmd = sql_cmd + """UNION SELECT * FROM %s WHERE %s """ %(t, query_string)
+                    sql_cmd = sql_cmd + """UNION SELECT * FROM {} WHERE {} """.format(t, query_string)
         else:
             # Null query string
             for i,t in enumerate(tables):
                 if i == 0:
-                    sql_cmd = sql_cmd + """SELECT * FROM %s """ % t
+                    sql_cmd = sql_cmd + """SELECT * FROM {} """.format(t)
                 if i>0:
-                    sql_cmd = sql_cmd + """UNION SELECT * FROM %s """ % t
+                    sql_cmd = sql_cmd + """UNION SELECT * FROM {} """.format(t)
 
 
         try:

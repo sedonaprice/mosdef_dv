@@ -16,6 +16,8 @@ Useful PyQt4 tutorial:
 	http://zetcode.com/gui/pyqt4/
 """
 
+from __future__ import print_function
+
 import sys, os
 import re
 from PyQt4.QtCore import *
@@ -166,8 +168,15 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         self.query_maskid_button = QPushButton("&Search mask, id")
         self.query_maskid_button.setFixedWidth(130) # 140
         self.connect(self.query_maskid_button, SIGNAL('clicked()'), self.on_mask_id_button)
-     
-     
+        
+        
+        # Query all masks:
+        self.query_all_masks_button = QPushButton("&Search all masks")
+        self.query_all_masks_button.setFixedWidth(130)
+        self.connect(self.query_all_masks_button, SIGNAL('clicked()'), self.on_all_mask_query)
+        
+        
+        
         ######################################
         # Matches to the Mask query:
         self.match_lbl = QLabel("Objects in mask:", self)
@@ -214,9 +223,11 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
                     stretch=0)
                     
         hbox2 = self.make_hbox_widget([self.lbl_objIDBox,
-                    self.objIDBox, 
-                    self.query_maskid_button],
+                    self.objIDBox, self.query_maskid_button],
                     stretch=0)
+                    
+        hbox25 = self.make_hbox_widget([self.query_all_masks_button],
+                                stretch=0)
         
         hbox3 = self.make_hbox_widget([self.match_lbl, self.matches],
                     stretch=0)
@@ -357,7 +368,8 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         hbox02 = self.make_hbox_widget([self.mpl_toolbar],stretch=1)
         vbox_canvas = self.make_vbox_layout([hbox01, hbox02])
         
-        vbox_input1 = self.make_vbox_layout([hbox1, hbox2], spacing=0)
+        vbox_input1 = self.make_vbox_layout([hbox1, hbox2, hbox25], spacing=0)
+        #vbox_input15 = self.make_vbox_layout([])
         vbox_input2 = self.make_vbox_layout([hbox3, hbox4])#, hbox5])
         vbox_input = self.make_vbox_layout([vbox_input1, vbox_input2])
         #vbox_input = self.make_vbox_layout([hbox1, hbox2, hbox3, hbox4, hbox5])
@@ -410,18 +422,39 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     ############################################################################
     # Query actions:
     
-    def on_mask_query(self):
-        self.maskname = str(self.maskNameBox.text())
+    def on_all_mask_query(self):
+        print('querying all masks')
         
-        print 'querying mask:', self.maskname
-        
-        query_str = "maskname = '%s'" % (self.maskname)
+        query_str = None
         query = query_db(query_str)
         
         items = []  
         if query is not None:
                 for q in query:
-                  primaper_str = self.toPrimAper(str(q['primaryID']), 
+                  primaper_str = self.toPrimAper(str(q['maskname']), str(q['primaryID']), 
+                            str(q['aperture_no']), obj_type=q['obj_type'])
+                  items.append(str(primaper_str))
+        
+        self.match_list = items
+            
+        # Reset combo box:
+        self.matches.clear()
+        for l in self.match_list:
+            self.matches.addItem(l)
+    
+    def on_mask_query(self):
+        self.maskname = str(self.maskNameBox.text())
+        
+        print('querying mask:', self.maskname)
+        
+        query_str = "maskname = '{}'".format(self.maskname)
+        query = query_db(query_str)
+        
+        # Update match list to give maskname too:
+        items = []  
+        if query is not None:
+                for q in query:
+                  primaper_str = self.toPrimAper(str(q['maskname']), str(q['primaryID']), 
                             str(q['aperture_no']), obj_type=q['obj_type'])
                   items.append(str(primaper_str))
         
@@ -437,24 +470,27 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         # When the search button is pressed
         
         self.maskname = str(self.maskNameBox.text())
-        try:
-             self.obj_id = np.int64(str(self.objIDBox.text()))
-        except:
-             # Non-numerical input; star?
-             self.obj_id = np.int64(str(self.objIDBox.text())[1:])
+        if str(self.objIDBox.text()) is not '':
+            try:
+                 self.obj_id = np.int64(str(self.objIDBox.text()))
+            except:
+                 # Non-numerical input; star?
+                 self.obj_id = np.int64(str(self.objIDBox.text())[1:])
              
-        self.on_mask_id_query()
+            self.on_mask_id_query()
+        else:
+            print("% mosdef_dataviewer: Please specify maskname and object ID to search on mask+ID")
            
         
     def on_mask_id_query(self):
         ## Actually do the query here, 
         #       whether initiated by a search 
         
-        print 'querying mask, id:', self.maskname, self.obj_id
+        print('querying mask, id:', self.maskname, self.obj_id)
         
         
         # Run the query
-        query_str = "maskname = '%s' AND objID = %s" % (self.maskname, self.obj_id)
+        query_str = "maskname = '{}' AND objID = {}".format(self.maskname, self.obj_id)
         query = query_db(query_str)
         
         # +++++++++++++++++++++++++++++++
@@ -511,7 +547,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         #       whether initiated by a search or one of the 
         #       dropdown menu options
 
-        print 'querying maskname, primID, aper_no:', self.maskname, self.primID, self.aper_no
+        print('querying maskname, primID, aper_no:', self.maskname, self.primID, self.aper_no)
 
         # Run the query
         query_str = "maskname = '%s' AND primaryID = '%s' AND aperture_no = %s" % (self.maskname, self.primID, self.aper_no)
@@ -576,6 +612,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
     # ComboBox setup:
     def initComboBox(self, list):
         combo = QComboBox(self)
+        combo.setMinimumWidth(150)
         for l in list:
             combo.addItem(l)
 
@@ -583,34 +620,51 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         return combo
         
     # Helper functions:
-    def toPrimAper(self, primID, aper_no, obj_type='G'):
+    def toPrimAper(self, maskname, primID, aper_no, obj_type='G'):
         if aper_no == '1':
             primaper_str = str(primID)
         else:
-            primaper_str = str(primID)+'.'+str(aper_no)
+            primaper_str = "{}.{}".format(str(primID),str(aper_no))
         
         if obj_type == 'S':
-            primaper_str = 'S'+primaper_str
+            primaper_str = 'S{}'.format(primaper_str)
         
-        return primaper_str
+        return "{}.{}".format(maskname, primaper_str)
         
     def fromPrimAper(self, primaper_str):
         splt = re.split(r'\.', str(primaper_str).strip())
+        # UPDATE:
+        # Update match list to give maskname too:
+        
+        ind_mask = 0
+        ind_id = 1
+        ind_aper = 2
+        num_prim = 2
+        num_serendip = 3
+        
+        ##  old:
+        # ind_id = 0
+        # ind_aper = 1
+        # num_prim = 1
+        # num_serendip = 2
+        
         #print "splt=", splt
-        if len(splt) == 1:
-            if splt[0][0] == 'S':
-                splt_tmp = splt[0][1:]
+        if len(splt) == num_prim:
+            if splt[ind_id][0] == 'S':
+                splt_tmp = splt[ind_id][1:]
             else:
-                splt_tmp = splt[0]
+                splt_tmp = splt[ind_id]
+            self.maskname = splt[ind_mask]
             self.primID = splt_tmp
             self.aper_no = 1
-        elif len(splt) == 2:
-            if splt[0][0] == 'S':
-                splt_tmp = splt[0][1:]
+        elif len(splt) == num_serendip:
+            if splt[ind_id][0] == 'S':
+                splt_tmp = splt[ind_id][1:]
             else:
-                splt_tmp = splt[0]
+                splt_tmp = splt[ind_id]
+            self.maskname = splt[ind_mask]
             self.primID = splt_tmp
-            self.aper_no = splt[1]
+            self.aper_no = splt[ind_aper]
         else:
             # Not proper format: reset values
             self.primID = -99
@@ -652,11 +706,11 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         dlg = ChangeDBinfo()
         if dlg.exec_():
             dlg.writePaths()
-            print '********************************'
-            print 'Writing new MOSDEF DV database'
+            print('********************************')
+            print('Writing new MOSDEF DV database')
             write_cat_db()
-            print 'Finished writing new DV database'
-            print '********************************'
+            print('Finished writing new DV database')
+            print('********************************')
     
     ##########################################################################
 
