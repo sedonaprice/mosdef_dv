@@ -126,6 +126,7 @@ def cat_struct():
     # Find out what data you have: use 1D spectra directory
     basedir_1d = read_path('MOSDEF_DV_1D')
     basedir_2d = read_path('MOSDEF_DV_2D')
+    extra_1d = read_path('EXTRA_1D_END')
     files = os.listdir(basedir_1d)
     files_2d = os.listdir(basedir_2d)
     
