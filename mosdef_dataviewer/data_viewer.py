@@ -22,6 +22,7 @@ import sys, os
 import re
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+#from PyQt5.QtWidgets import *
 import numpy as np
 
 import matplotlib as mpl
@@ -119,6 +120,7 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         # Make shortcuts to go with the MPL toolbar items
         action = QAction(name, self)
         action.setShortcut(shortcut)
+        #self.connect(action, SIGNAL(signal), slot)
         self.connect(action, SIGNAL(signal), slot)
         button = QWidget()
         button.addAction(action)

@@ -4,6 +4,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+#from PyQt5.QtWidgets import *
 import sys, os
 
 import pandas as pd

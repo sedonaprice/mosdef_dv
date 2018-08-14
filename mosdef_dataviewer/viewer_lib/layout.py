@@ -5,6 +5,7 @@
 import sys, os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+#from PyQt5.QtWidgets import *
 
 from viewer_io import read_spec1d_comments
 
