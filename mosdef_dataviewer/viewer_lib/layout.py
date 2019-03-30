@@ -223,6 +223,7 @@ class DV_Layout(object):
                 initlist = str(initprim)+'.'+str(initaper)
             else:
                 initlist = str(initprim)
+            
             markup_str = self.make_serendip_markup(text=initlist, 
                                             color=initcols)
         

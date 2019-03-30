@@ -101,8 +101,7 @@ def read_3dhst_cat(field, vers='2.1'):
         else:
             field_name = field
 
-        filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
-        
+        filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
 
         exist = os.path.isfile(filename)
         if exist:
@@ -113,8 +112,8 @@ def read_3dhst_cat(field, vers='2.1'):
 
             return data
         else:
-            filename = path+'/v'+vers+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
-        
+            filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
+            
             exist = os.path.isfile(filename)
             if exist:
                 hdulist = fits.open(filename)
@@ -287,7 +286,7 @@ def read_paths():
     if os.path.exists(filename):
  
         path_info = np.genfromtxt(filename, dtype=None, 
-                    names=['label', 'path'])
+                    names=[u'label', u'path'])
         
         df = pd.DataFrame(path_info)
         for i in xrange(len(df)):
