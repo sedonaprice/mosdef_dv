@@ -20,8 +20,14 @@ from __future__ import print_function
 
 import sys, os
 import re
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+try:
+    raise ValueError("Must use PyQt4 until you get around to translating the slots/connections...")
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtWidgets import *
+except:
+    from PyQt4.QtCore import *
+    from PyQt4.QtGui import *
 #from PyQt5.QtWidgets import *
 import numpy as np
 
@@ -30,7 +36,10 @@ mpl.rcParams['text.usetex'] = False
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 #from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+try:
+    from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+except:
+    from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 
 from viewer_lib.database import write_cat_db, query_db
@@ -47,7 +56,11 @@ from viewer_lib.layout import DV_Layout
 class NavigationToolbar(NavigationToolbar):
     # only display the buttons we need
     toolitems = [t for t in NavigationToolbar.toolitems if
-                 t[0] in ('Home', 'Pan', 'Zoom')]
+                 t[0] in ('Home', 'Pan', 'Zoom', 'Back', 'Forward', None, 'Save')]
+    
+    # toolitems = NavigationToolbar.toolitems
+    # for t in NavigationToolbar.toolitems:
+    #     print(t[0])
 
 
 class DataViewer(QMainWindow, DV_Menu, DV_Layout):
@@ -88,9 +101,9 @@ class DataViewer(QMainWindow, DV_Menu, DV_Layout):
         self.h_mag = None
         self.query_good = 0
         
-        self.obj_id_color = None
+        self.obj_id_color = None #'darkturquoise'
         self.serendip_ids = None
-        self.serendip_colors = None
+        self.serendip_colors = None #['orange', 'magenta', 'yellowgreen', 'red', 'MediumSlateBlue']
         
         ##--------------------##
         ##   Create things:   ##

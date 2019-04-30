@@ -100,8 +100,11 @@ def read_3dhst_cat(field, vers='2.1'):
             field_name = 'GOODSS'
         else:
             field_name = field
-
-        filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
+            
+        if vers == '2.1':
+            filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
+        else:
+            filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
 
         exist = os.path.isfile(filename)
         if exist:
@@ -112,7 +115,10 @@ def read_3dhst_cat(field, vers='2.1'):
 
             return data
         else:
-            filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
+            if vers == '2.1':
+                filename = path+'/v'+vers+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
+            else:
+                filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
             
             exist = os.path.isfile(filename)
             if exist:
@@ -124,6 +130,7 @@ def read_3dhst_cat(field, vers='2.1'):
                 return data
         
             else:
+                print("Can't find 3DHST catalog! {}".format(filename))
                 return None
 
 def read_spec1d_comments(filename, band, optimal=True):
