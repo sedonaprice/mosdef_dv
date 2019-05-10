@@ -101,7 +101,7 @@ def read_3dhst_cat(field, vers='2.1'):
         else:
             field_name = field
             
-        if vers == '2.1':
+        if (vers == '2.1') | (vers == '4.1'):
             filename = path+'/v'+vers+'/'+field.upper()+'/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
         else:
             filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field_name.lower()+'_3dhst.v'+vers+'.cat.FITS'
@@ -115,7 +115,7 @@ def read_3dhst_cat(field, vers='2.1'):
 
             return data
         else:
-            if vers == '2.1':
+            if (vers == '2.1') | (vers == '4.1'):
                 filename = path+'/v'+vers+'/'+field.upper()+'/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
             else:
                 filename = path+'/v'+vers+'/'+field.upper()+'/Catalog/'+field.upper()+'_3dhst.v'+vers+'.cat.FITS'
